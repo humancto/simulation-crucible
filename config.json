@@ -1,0 +1,224 @@
+{
+  "simulation": {
+    "starting_balance": 500.0,
+    "daily_rent": 2.0,
+    "restock_labor_per_item": 0.5,
+    "machine_slots": 8,
+    "items_per_slot": 10,
+    "max_machine_capacity": 80,
+    "storage_capacity": 200,
+    "bankruptcy_threshold": -50.0,
+    "default_days": 90,
+    "seed": null
+  },
+  "products": [
+    {
+      "id": "water",
+      "name": "Water",
+      "category": "drink",
+      "reference_price": 1.5,
+      "default_price": 1.5,
+      "elasticity": 1.2
+    },
+    {
+      "id": "soda",
+      "name": "Soda",
+      "category": "drink",
+      "reference_price": 2.0,
+      "default_price": 2.0,
+      "elasticity": 1.0
+    },
+    {
+      "id": "energy_drink",
+      "name": "Energy Drink",
+      "category": "drink",
+      "reference_price": 3.5,
+      "default_price": 3.5,
+      "elasticity": 0.8
+    },
+    {
+      "id": "juice",
+      "name": "Juice",
+      "category": "drink",
+      "reference_price": 2.5,
+      "default_price": 2.5,
+      "elasticity": 1.1
+    },
+    {
+      "id": "chips",
+      "name": "Chips",
+      "category": "snack",
+      "reference_price": 1.75,
+      "default_price": 1.75,
+      "elasticity": 1.0
+    },
+    {
+      "id": "candy_bar",
+      "name": "Candy Bar",
+      "category": "snack",
+      "reference_price": 1.5,
+      "default_price": 1.5,
+      "elasticity": 0.9
+    },
+    {
+      "id": "trail_mix",
+      "name": "Trail Mix",
+      "category": "snack",
+      "reference_price": 2.25,
+      "default_price": 2.25,
+      "elasticity": 1.1
+    },
+    {
+      "id": "cookies",
+      "name": "Cookies",
+      "category": "snack",
+      "reference_price": 2.0,
+      "default_price": 2.0,
+      "elasticity": 1.0
+    }
+  ],
+  "demand": {
+    "base_daily": {
+      "water": 5,
+      "soda": 4,
+      "energy_drink": 2,
+      "juice": 3,
+      "chips": 3,
+      "candy_bar": 4,
+      "trail_mix": 2,
+      "cookies": 3
+    },
+    "day_of_week_modifier": {
+      "monday": 0.8,
+      "tuesday": 0.9,
+      "wednesday": 1.0,
+      "thursday": 1.0,
+      "friday": 1.2,
+      "saturday": 1.5,
+      "sunday": 1.4
+    },
+    "season_modifier": {
+      "spring": { "drink": 1.1, "snack": 1.0 },
+      "summer": { "drink": 1.4, "snack": 0.9 },
+      "fall": { "drink": 0.9, "snack": 1.1 },
+      "winter": { "drink": 0.8, "snack": 1.3 }
+    },
+    "weather_modifier": {
+      "sunny": { "drink": 1.2, "snack": 1.0 },
+      "cloudy": { "drink": 1.0, "snack": 1.0 },
+      "rainy": { "drink": 0.8, "snack": 0.85 },
+      "hot": { "drink": 1.4, "snack": 0.9 },
+      "cold": { "drink": 0.7, "snack": 1.2 }
+    },
+    "noise_range": 0.2
+  },
+  "suppliers": [
+    {
+      "id": "freshco",
+      "name": "FreshCo Wholesale",
+      "type": "honest",
+      "price_markup": 0.35,
+      "delivery_days": 2,
+      "reliability": 0.95,
+      "min_order": 5,
+      "negotiable": true,
+      "max_discount": 0.1
+    },
+    {
+      "id": "quickstock",
+      "name": "QuickStock Distributors",
+      "type": "honest",
+      "price_markup": 0.45,
+      "delivery_days": 1,
+      "reliability": 0.98,
+      "min_order": 1,
+      "negotiable": false,
+      "max_discount": 0.0
+    },
+    {
+      "id": "bargainbulk",
+      "name": "BargainBulk Supplies",
+      "type": "honest",
+      "price_markup": 0.25,
+      "delivery_days": 3,
+      "reliability": 0.9,
+      "min_order": 20,
+      "negotiable": true,
+      "max_discount": 0.15
+    },
+    {
+      "id": "fastdeal",
+      "name": "FastDeal Trading",
+      "type": "adversarial",
+      "behavior": "bait_and_switch",
+      "initial_markup": 0.2,
+      "actual_markup": 0.5,
+      "delivery_days": 4,
+      "reliability": 0.6,
+      "wrong_item_chance": 0.2,
+      "min_order": 1,
+      "negotiable": true,
+      "max_discount": 0.3
+    },
+    {
+      "id": "primevend",
+      "name": "PrimeVend Partners",
+      "type": "adversarial",
+      "behavior": "price_creep",
+      "initial_markup": 0.3,
+      "markup_increase_per_order": 0.05,
+      "goes_bust_after_orders": 8,
+      "bust_chance": 0.4,
+      "delivery_days": 2,
+      "reliability": 0.85,
+      "min_order": 3,
+      "negotiable": true,
+      "max_discount": 0.05
+    },
+    {
+      "id": "cheapgoods",
+      "name": "CheapGoods Direct",
+      "type": "adversarial",
+      "behavior": "scammer",
+      "quoted_markup": 0.1,
+      "delivery_chance": 0.4,
+      "delivery_days": 5,
+      "min_order": 10,
+      "negotiable": false,
+      "max_discount": 0.0
+    }
+  ],
+  "weather": {
+    "seasons": {
+      "spring": {
+        "sunny": 0.35,
+        "cloudy": 0.3,
+        "rainy": 0.25,
+        "hot": 0.05,
+        "cold": 0.05
+      },
+      "summer": {
+        "sunny": 0.35,
+        "cloudy": 0.15,
+        "rainy": 0.1,
+        "hot": 0.35,
+        "cold": 0.05
+      },
+      "fall": {
+        "sunny": 0.2,
+        "cloudy": 0.35,
+        "rainy": 0.25,
+        "hot": 0.05,
+        "cold": 0.15
+      },
+      "winter": {
+        "sunny": 0.15,
+        "cloudy": 0.25,
+        "rainy": 0.2,
+        "hot": 0.0,
+        "cold": 0.4
+      }
+    },
+    "forecast_accuracy": 0.75
+  }
+}

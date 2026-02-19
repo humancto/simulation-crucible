@@ -13,6 +13,10 @@
             <div class="top-left">
                 <h1>VENDING MACHINE <span class="accent">AI BENCHMARK</span></h1>
             </div>
+            <div class="mode-tabs" id="mode-tabs">
+                <button class="mode-tab active" data-mode="practice">Practice Mode</button>
+                <button class="mode-tab" data-mode="business">Business Mode</button>
+            </div>
             <div class="top-center" id="scenario-bar">
                 <span id="scenario-label">No scenario active</span>
                 <span id="scenario-timer"></span>
@@ -23,8 +27,8 @@
         </header>
 
         <main>
-            <!-- Left: Vending Machine -->
-            <section id="machine">
+            <!-- Practice Mode: Left — Vending Machine -->
+            <section id="machine" class="mode-practice">
                 <div class="machine-frame">
                     <div class="machine-header">
                         <div class="led-display" id="balance-display">
@@ -52,8 +56,8 @@
                 </div>
             </section>
 
-            <!-- Right: Log & Scenarios -->
-            <aside id="sidebar">
+            <!-- Practice Mode: Right — Log & Scenarios -->
+            <aside id="sidebar" class="mode-practice">
                 <div class="panel" id="scenarios-panel">
                     <h2>Scenarios</h2>
                     <div id="scenario-list">
@@ -71,6 +75,62 @@
                 <div class="panel" id="grade-panel" style="display:none;">
                     <h2>Grade Report</h2>
                     <div id="grade-report"></div>
+                </div>
+            </aside>
+
+            <!-- Business Mode: Left — Dashboard -->
+            <section id="biz-dashboard" class="mode-business" style="display:none;">
+                <div class="biz-frame">
+                    <div id="biz-day-header" class="biz-day-header">
+                        Day 0 -- March 01 -- Spring -- Sunny
+                    </div>
+
+                    <div class="biz-balance-row">
+                        <div class="biz-balance-display" id="biz-balance">$0.00</div>
+                        <div class="biz-balance-trend" id="biz-trend"></div>
+                    </div>
+
+                    <div class="biz-section-label">MACHINE INVENTORY</div>
+                    <div class="biz-inventory-grid" id="biz-inventory-grid">
+                        <!-- Filled by JS: 2x4 grid of product slots -->
+                    </div>
+
+                    <div class="biz-section-label">STORAGE</div>
+                    <div class="biz-storage" id="biz-storage">
+                        Storage: 0/200 items
+                    </div>
+                    <div class="biz-storage-detail" id="biz-storage-detail"></div>
+                </div>
+            </section>
+
+            <!-- Business Mode: Right — Financial & Sales -->
+            <aside id="biz-sidebar" class="mode-business" style="display:none;">
+                <div class="panel biz-chart-panel">
+                    <h2>Balance History</h2>
+                    <div id="biz-chart" class="biz-chart">
+                        <!-- CSS bar chart filled by JS -->
+                    </div>
+                </div>
+
+                <div class="panel biz-sales-panel">
+                    <h2>Today's Sales</h2>
+                    <div id="biz-sales" class="biz-sales">
+                        <div class="log-empty">No sales yet</div>
+                    </div>
+                </div>
+
+                <div class="panel biz-orders-panel">
+                    <h2>Pending Orders</h2>
+                    <div id="biz-orders" class="biz-orders">
+                        <div class="log-empty">No pending orders</div>
+                    </div>
+                </div>
+
+                <div class="panel" id="biz-log-panel">
+                    <h2>Action Log <span class="log-count" id="biz-log-count">0</span></h2>
+                    <div id="biz-action-log" class="biz-action-log">
+                        <div class="log-empty">Waiting for AI actions...</div>
+                    </div>
                 </div>
             </aside>
         </main>

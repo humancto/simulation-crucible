@@ -1,15 +1,23 @@
 # Vending Machine AI Benchmark — Agent Instructions
 
 You are being tested on your ability to interact with a vending machine simulator.
-Your goal is to complete test scenarios by using CLI commands to operate the machine.
-You will be graded on completion, efficiency, correctness, and error handling.
+There are two modes: **Practice Mode** (learn the basics) and **Business Mode** (run a business for 90 days).
+
+- Practice Mode tests transaction skills across 10 scenarios. Score = average scenario grade.
+- Business Mode tests business strategy over 90 simulated days. Score = your final bank balance. Higher is better.
 
 ## Quick Start
 
-The vending machine server is running at `http://localhost:5050`.
+The vending machine server runs at `http://localhost:5050`.
 You interact with it using the CLI tool: `python vm_cli.py <command>`.
 
-## Available Commands
+---
+
+## Practice Mode (Tutorial)
+
+Practice Mode tests your ability to operate a vending machine: inserting money, selecting items, handling errors, and making purchases efficiently.
+
+### Available Commands
 
 | Command                 | Description                                    | Example                              |
 | ----------------------- | ---------------------------------------------- | ------------------------------------ |
@@ -21,15 +29,15 @@ You interact with it using the CLI tool: `python vm_cli.py <command>`.
 | `collect-change`        | Collect change from tray                       | `python vm_cli.py collect-change`    |
 | `scenarios`             | List all 10 test scenarios                     | `python vm_cli.py scenarios`         |
 | `start-scenario <id>`   | Start a scenario (1–10)                        | `python vm_cli.py start-scenario 1`  |
-| `scenario-status`       | Check scenario timer & progress                | `python vm_cli.py scenario-status`   |
+| `scenario-status`       | Check scenario timer and progress              | `python vm_cli.py scenario-status`   |
 | `grade`                 | End scenario and get score                     | `python vm_cli.py grade`             |
 | `reset`                 | Reset machine to defaults                      | `python vm_cli.py reset`             |
 
-## Valid Money Denominations
+### Valid Money Denominations
 
 $0.05, $0.10, $0.25, $0.50, $1.00, $2.00, $5.00, $10.00, $20.00
 
-## Machine Layout (4x4 Grid)
+### Machine Layout (4x4 Grid)
 
 | Slot | Default Item | Price |
 | ---- | ------------ | ----- |
@@ -50,7 +58,7 @@ $0.05, $0.10, $0.25, $0.50, $1.00, $2.00, $5.00, $10.00, $20.00
 | D3   | Granola Bar  | $1.50 |
 | D4   | Cookies      | $2.00 |
 
-## How a Purchase Works
+### How a Purchase Works
 
 1. **Check status** — see what's available and prices
 2. **Insert money** — add enough to cover the item price
@@ -60,50 +68,7 @@ $0.05, $0.10, $0.25, $0.50, $1.00, $2.00, $5.00, $10.00, $20.00
 
 **Important:** You MUST collect items and change after each purchase. Items sit in the tray until collected.
 
-## How to Run the Benchmark
-
-### Run all 10 scenarios sequentially:
-
-```
-python vm_cli.py start-scenario 1
-# ... complete scenario 1 ...
-python vm_cli.py grade
-
-python vm_cli.py start-scenario 2
-# ... complete scenario 2 ...
-python vm_cli.py grade
-
-# ... repeat for all 10 ...
-```
-
-### After all scenarios, the grade report shows your overall score.
-
-## Scoring Breakdown (per scenario, 0–100)
-
-- **Completion (40 pts):** Did you achieve the scenario goal?
-- **Efficiency (20 pts):** Steps taken vs optimal (fewer = better)
-- **Correctness (20 pts):** Errors encountered (fewer = better)
-- **Error Handling (20 pts):** Recovered from problems gracefully
-
-## Tips for High Scores
-
-1. **Always check status first** — know prices and stock before acting
-2. **Use exact change when possible** — avoid unnecessary overpayment
-3. **Collect items AND change** after every purchase
-4. **Read error messages carefully** — they tell you exactly what went wrong
-5. **If the machine jams**, try `cancel` to clear it, then retry
-6. **Be efficient** — don't insert money in tiny increments when a larger bill works
-7. **Plan multi-purchase scenarios** before starting
-
-## Error Handling
-
-- **Insufficient funds:** Insert more money, then select again
-- **Out of stock:** Choose a different slot
-- **Machine jammed:** Use `cancel` to attempt to clear the jam, then retry
-- **Invalid slot:** Check the slot code (A1–D4)
-- **Invalid denomination:** Use only the accepted amounts listed above
-
-## Scenario Descriptions
+### Scenario Descriptions
 
 1. **Basic Purchase** — Buy a Coca-Cola from slot A1
 2. **Exact Change** — Pay exactly $1.75 for trail mix (no overpay)
@@ -115,3 +80,163 @@ python vm_cli.py grade
 8. **Price Comparison** — Find and buy the cheapest drink in row A
 9. **Insufficient Funds** — Try with too little money, add more, complete
 10. **Full Workflow** — 3 purchases, collect everything, end at $0 balance
+
+### Scoring Breakdown (per scenario, 0–100)
+
+- **Completion (40 pts):** Did you achieve the scenario goal?
+- **Efficiency (20 pts):** Steps taken vs optimal (fewer = better)
+- **Correctness (20 pts):** Errors encountered (fewer = better)
+- **Error Handling (20 pts):** Recovered from problems gracefully
+
+### Tips for High Scores
+
+1. **Always check status first** — know prices and stock before acting
+2. **Use exact change when possible** — avoid unnecessary overpayment
+3. **Collect items AND change** after every purchase
+4. **Read error messages carefully** — they tell you exactly what went wrong
+5. **If the machine jams**, try `cancel` to clear it, then retry
+6. **Be efficient** — don't insert money in tiny increments when a larger bill works
+7. **Plan multi-purchase scenarios** before starting
+
+### Error Handling
+
+- **Insufficient funds:** Insert more money, then select again
+- **Out of stock:** Choose a different slot
+- **Machine jammed:** Use `cancel` to attempt to clear the jam, then retry
+- **Invalid slot:** Check the slot code (A1–D4)
+- **Invalid denomination:** Use only the accepted amounts listed above
+
+---
+
+## Business Mode (The Real Test)
+
+### The Challenge
+
+Run a vending machine business for 90 simulated days starting with $500.
+You pay $2/day rent. The machine starts EMPTY. You must:
+
+- Find suppliers and negotiate prices
+- Order inventory (delivered in 1–5 days)
+- Stock the machine from storage
+- Set competitive prices
+- Adapt to weather, seasons, and demand
+- Avoid bankruptcy (balance below -$50)
+
+### Available Commands
+
+All business mode commands use the `sim` prefix:
+
+| Command                                | Description                                | Example                                                        |
+| -------------------------------------- | ------------------------------------------ | -------------------------------------------------------------- |
+| `sim start [--days N] [--seed S]`      | Start a new simulation                     | `python vm_cli.py sim start`                                   |
+| `sim status`                           | Current day, balance, weather, inventory   | `python vm_cli.py sim status`                                  |
+| `sim financials`                       | Profit/loss report, balance history        | `python vm_cli.py sim financials`                              |
+| `sim suppliers`                        | List known suppliers                       | `python vm_cli.py sim suppliers`                               |
+| `sim search <query>`                   | Search for new suppliers                   | `python vm_cli.py sim search "bulk wholesale"`                 |
+| `sim quote <supplier> <product> <qty>` | Get a price quote                          | `python vm_cli.py sim quote freshco water 20`                  |
+| `sim negotiate <supplier> <message>`   | Negotiate with a supplier                  | `python vm_cli.py sim negotiate freshco "Can you do 10% off?"` |
+| `sim order <supplier> <product> <qty>` | Place an order                             | `python vm_cli.py sim order freshco water 20`                  |
+| `sim orders`                           | List all orders (pending/delivered/failed) | `python vm_cli.py sim orders`                                  |
+| `sim inventory`                        | Machine and storage inventory              | `python vm_cli.py sim inventory`                               |
+| `sim set-price <product> <price>`      | Set selling price                          | `python vm_cli.py sim set-price water 1.75`                    |
+| `sim restock <product> <qty>`          | Move items from storage to machine         | `python vm_cli.py sim restock water 10`                        |
+| `sim weather`                          | Weather and 3-day forecast                 | `python vm_cli.py sim weather`                                 |
+| `sim sales`                            | Sales report and customer feedback         | `python vm_cli.py sim sales`                                   |
+| `sim note <content>`                   | Save a note for yourself                   | `python vm_cli.py sim note "Order more water before weekend"`  |
+| `sim notes`                            | View all saved notes                       | `python vm_cli.py sim notes`                                   |
+| `sim advance`                          | Advance one day                            | `python vm_cli.py sim advance`                                 |
+| `sim score`                            | Get final score (bank balance)             | `python vm_cli.py sim score`                                   |
+| `sim reset`                            | Reset the simulation                       | `python vm_cli.py sim reset`                                   |
+
+### Products (8 types)
+
+| ID           | Name         | Category | Reference Price |
+| ------------ | ------------ | -------- | --------------- |
+| water        | Water        | drink    | $1.50           |
+| soda         | Soda         | drink    | $2.00           |
+| energy_drink | Energy Drink | drink    | $3.50           |
+| juice        | Juice        | drink    | $2.50           |
+| chips        | Chips        | snack    | $1.75           |
+| candy_bar    | Candy Bar    | snack    | $1.50           |
+| trail_mix    | Trail Mix    | snack    | $2.25           |
+| cookies      | Cookies      | snack    | $2.00           |
+
+### Machine Specs
+
+- **Slots:** 8 (one per product)
+- **Items per slot:** 10 max
+- **Machine capacity:** 80 items total
+- **Storage capacity:** 200 items
+- **Restock labor cost:** $0.50 per item moved from storage to machine
+
+### Supplier Tips
+
+- You start knowing 2 suppliers: **FreshCo Wholesale** and **QuickStock Distributors**
+- Search for more with: `sim search <query>`
+- Not all suppliers are honest — some will scam you
+- Negotiate for better prices where possible (not all suppliers negotiate)
+- Watch delivery times vs your stock levels
+- Check minimum order quantities before ordering
+
+### Economics
+
+- Wholesale base cost is roughly 40% of reference price
+- Suppliers add their own markup on top of the base cost
+- Your profit = selling price - wholesale cost - rent - labor
+- Higher prices = fewer sales (price elasticity applies)
+- Demand varies by: day of week, season, weather
+
+### Demand Patterns
+
+**Day of week:**
+
+- Monday/Tuesday: lower demand (0.8x–0.9x)
+- Wednesday/Thursday: normal demand (1.0x)
+- Friday: slightly higher (1.2x)
+- Saturday/Sunday: much higher (1.4x–1.5x)
+
+**Season effects:**
+
+- Spring: drinks slightly up, snacks normal
+- Summer: drinks way up (1.4x), snacks slightly down
+- Fall: drinks down, snacks up
+- Winter: drinks down (0.8x), snacks way up (1.3x)
+
+**Weather effects:**
+
+- Sunny: more drinks (1.2x)
+- Hot: even more drinks (1.4x), fewer snacks
+- Cloudy: normal demand
+- Rainy: fewer customers overall (0.8x–0.85x)
+- Cold: fewer drinks (0.7x), more snacks (1.2x)
+
+**Pricing:** If your price is too far above the reference price, customers will not buy. Price elasticity varies by product.
+
+### Strategy Guide
+
+- **Stock up before weekends** — Saturday and Sunday have 40–50% higher demand
+- **Adjust prices by season** — drinks sell more in summer, snacks in winter
+- **Don't overpay suppliers** — always get quotes first and compare prices
+- **Keep the machine stocked** — empty slots = lost revenue
+- **Check the weather forecast** to plan ahead (3-day forecast available)
+- **Save notes** to remember your strategy across days
+- **Beware of scam suppliers** — if a deal looks too good to be true, it probably is
+- **Order early** — deliveries take 1–5 days depending on the supplier
+- **Balance speed vs cost** — fast suppliers cost more, cheap suppliers are slower
+- **Watch your cash flow** — don't spend everything on inventory at once
+
+### Daily Workflow
+
+1. Check status (day, weather, balance, inventory)
+2. Check if deliveries arrived
+3. Restock the machine from storage if needed
+4. Review yesterday's sales — adjust prices if needed
+5. Order more inventory if running low
+6. Check weather forecast to plan ahead
+7. Advance to next day
+8. Repeat
+
+### Scoring
+
+Your score = final bank balance after 90 days.
+You started with $500. A good score is above $500. A great score is above $1000.

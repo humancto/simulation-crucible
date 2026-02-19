@@ -171,6 +171,431 @@ def cmd_reset(args):
     print(result.get("message", "Reset complete"))
 
 
+# ---------------------------------------------------------------------------
+# Simulation commands
+# ---------------------------------------------------------------------------
+
+def _sim_error(result):
+    """Print a simulation error and exit."""
+    print(f"Error: {result.get('error', 'Unknown error')}", file=sys.stderr)
+    sys.exit(1)
+
+
+def cmd_sim_start(args):
+    """Start a new simulation."""
+    data = {"days": args.days}
+    if args.seed is not None:
+        data["seed"] = args.seed
+    result, code = _post("/api/sim/start", data)
+    if code >= 400:
+        _sim_error(result)
+    print(f"Simulation started! ({result.get('total_days', args.days)} days, seed: {result.get('seed', 'random')})")
+    print(f"Starting balance: ${result.get('starting_balance', 0):.2f}")
+
+
+def cmd_sim_status(args):
+    """Show current simulation status."""
+    state = _get("/api/sim/status")
+    if "error" in state:
+        _sim_error(state)
+
+    season = state.get("season", "").capitalize()
+    weather = state.get("weather", "").capitalize()
+    balance = state.get("balance", 0)
+    day = state.get("day", 0)
+    date_str = state.get("date_str", "")
+
+    print(f"=== Day {day} ({date_str}) -- {season} ===")
+    print(f"Weather: {weather} | Balance: ${balance:.2f}")
+
+    mi = state.get("machine_inventory", {})
+    si = state.get("storage_inventory", {})
+    machine_count = sum(v.get("qty", 0) for v in mi.values())
+    storage_count = sum(si.values())
+    print(f"Machine: {machine_count} items | Storage: {storage_count} items")
+
+    if mi:
+        print(f"\nMachine Inventory:")
+        items = list(mi.items())
+        for i in range(0, len(items), 2):
+            left_id, left = items[i]
+            left_str = f"  {left_id:<12} x{left['qty']:<3} @ ${left['price']:.2f}"
+            if i + 1 < len(items):
+                right_id, right = items[i + 1]
+                right_str = f"{right_id:<12} x{right['qty']:<3} @ ${right['price']:.2f}"
+                print(f"{left_str}  |  {right_str}")
+            else:
+                print(left_str)
+
+    if state.get("bankrupt"):
+        print("\n*** BANKRUPT -- Simulation over ***")
+
+    pending = state.get("pending_orders", [])
+    if pending:
+        print(f"\nPending Orders: {len(pending)}")
+        for o in pending:
+            print(f"  Order #{o['order_id']}: {o['qty']}x {o['product']} (delivery day {o['expected_delivery_day']})")
+
+
+def cmd_sim_financials(args):
+    """Show financial report."""
+    fin = _get("/api/sim/financials")
+    if "error" in fin:
+        _sim_error(fin)
+
+    history = fin.get("daily_history", [])
+    day_count = len(history)
+    balance = fin.get("balance", 0)
+    revenue = fin.get("total_revenue", 0)
+    costs = fin.get("total_costs", 0)
+    profit = fin.get("total_profit", 0)
+    breakdown = fin.get("cost_breakdown", {})
+
+    print(f"=== Financial Report -- Day {day_count} ===")
+    print(f"Balance: ${balance:.2f}")
+    print(f"Total Revenue: ${revenue:.2f}")
+    print(f"Total Costs:   ${costs:.2f}")
+    print(f"  Rent:      ${breakdown.get('rent', 0):.2f}")
+    print(f"  Inventory: ${breakdown.get('inventory', 0):.2f}")
+    print(f"  Labor:     ${breakdown.get('labor', 0):.2f}")
+    print(f"Net Profit: ${profit:.2f}")
+
+    if day_count > 0:
+        avg = revenue / day_count
+        best = max(history, key=lambda d: d.get("profit", 0))
+        worst = min(history, key=lambda d: d.get("profit", 0))
+        print(f"\nAvg Daily Revenue: ${avg:.2f}")
+        print(f"Best Day: Day {best['day']} (${best['profit']:.2f})")
+        print(f"Worst Day: Day {worst['day']} (${worst['profit']:.2f})")
+
+
+def cmd_sim_suppliers(args):
+    """List known suppliers."""
+    suppliers = _get("/api/sim/suppliers")
+    if isinstance(suppliers, dict) and "error" in suppliers:
+        _sim_error(suppliers)
+
+    print("Known Suppliers:")
+    for s in suppliers:
+        status = f" [{s['status']}]" if s.get("status") == "out_of_business" else ""
+        print(f"  {s['id']:<15} {s['name']:<25} Delivery: {s['delivery_days']} day{'s' if s['delivery_days'] != 1 else ''}  Min order: {s['min_order']}{status}")
+
+
+def cmd_sim_search(args):
+    """Search for new suppliers."""
+    result, code = _post("/api/sim/search-suppliers", {"query": args.query})
+    if code >= 400:
+        _sim_error(result)
+
+    results = result if isinstance(result, list) else result.get("results", [])
+    if not results:
+        print(f"No new suppliers found for '{args.query}'.")
+        return
+
+    print(f"Found {len(results)} supplier(s):")
+    for s in results:
+        print(f"  {s['id']:<15} {s['name']:<25} Delivery: {s['delivery_days']} day{'s' if s['delivery_days'] != 1 else ''}  Min order: {s['min_order']}")
+
+
+def cmd_sim_quote(args):
+    """Get a price quote from a supplier."""
+    result, code = _post("/api/sim/quote", {
+        "supplier_id": args.supplier_id,
+        "product_id": args.product_id,
+        "qty": args.qty,
+    })
+    if code >= 400:
+        _sim_error(result)
+    if "error" in result:
+        _sim_error(result)
+
+    print(f"Quote from {result['supplier']}:")
+    print(f"  Product: {result['product']}  Qty: {result['qty']}")
+    print(f"  Unit price: ${result['unit_price']:.2f}")
+    print(f"  Total: ${result['total_price']:.2f}")
+    print(f"  Delivery: {result['delivery_days']} day{'s' if result['delivery_days'] != 1 else ''}  Min order: {result['min_order']}")
+
+
+def cmd_sim_negotiate(args):
+    """Negotiate with a supplier."""
+    result, code = _post("/api/sim/negotiate", {
+        "supplier_id": args.supplier_id,
+        "message": args.message,
+    })
+    if code >= 400:
+        _sim_error(result)
+
+    print(f"Supplier response: {result.get('response', 'No response')}")
+
+
+def cmd_sim_order(args):
+    """Place an order with a supplier."""
+    result, code = _post("/api/sim/order", {
+        "supplier_id": args.supplier_id,
+        "product_id": args.product_id,
+        "qty": args.qty,
+    })
+    if code >= 400:
+        _sim_error(result)
+    if "error" in result:
+        _sim_error(result)
+
+    print(f"Order #{result['order_id']} placed!")
+    print(f"  {result['qty']}x {result['product']} from {result['supplier']}")
+    print(f"  Total cost: ${result['total_cost']:.2f}")
+    print(f"  Expected delivery: Day {result['expected_delivery_day']}")
+
+
+def cmd_sim_orders(args):
+    """List all orders."""
+    orders = _get("/api/sim/orders")
+    if isinstance(orders, dict) and "error" in orders:
+        _sim_error(orders)
+
+    if not orders:
+        print("No orders placed yet.")
+        return
+
+    pending = [o for o in orders if o["status"] == "pending"]
+    delivered = [o for o in orders if o["status"] == "delivered"]
+    failed = [o for o in orders if o["status"] == "failed"]
+
+    if pending:
+        print(f"Pending ({len(pending)}):")
+        for o in pending:
+            print(f"  #{o['order_id']}: {o['qty']}x {o['product']} from {o['supplier']} -- delivery day {o['expected_delivery_day']} (${o['total_cost']:.2f})")
+
+    if delivered:
+        print(f"Delivered ({len(delivered)}):")
+        for o in delivered:
+            print(f"  #{o['order_id']}: {o['qty']}x {o['product']} from {o['supplier']} (${o['total_cost']:.2f})")
+
+    if failed:
+        print(f"Failed ({len(failed)}):")
+        for o in failed:
+            print(f"  #{o['order_id']}: {o['qty']}x {o['product']} from {o['supplier']} (${o['total_cost']:.2f})")
+
+
+def cmd_sim_inventory(args):
+    """Show machine and storage inventory."""
+    inv = _get("/api/sim/inventory")
+    if "error" in inv:
+        _sim_error(inv)
+
+    machine = inv.get("machine", {})
+    storage = inv.get("storage", {})
+
+    print("=== Machine Inventory ===")
+    if machine:
+        for pid, info in machine.items():
+            print(f"  {pid:<15} x{info['qty']:<4} @ ${info['price']:.2f}  (slot {info.get('slot', '?')})")
+    else:
+        print("  (empty)")
+
+    print(f"\n=== Storage Inventory ===")
+    if storage:
+        for pid, qty in storage.items():
+            print(f"  {pid:<15} x{qty}")
+    else:
+        print("  (empty)")
+
+
+def cmd_sim_set_price(args):
+    """Set selling price for a product."""
+    result, code = _post("/api/sim/set-price", {
+        "product_id": args.product_id,
+        "price": args.price,
+    })
+    if code >= 400:
+        _sim_error(result)
+    if "error" in result:
+        _sim_error(result)
+
+    print(f"Price updated: {result['product']}")
+    print(f"  ${result['old_price']:.2f} -> ${result['new_price']:.2f}")
+
+
+def cmd_sim_restock(args):
+    """Move items from storage to machine."""
+    result, code = _post("/api/sim/restock", {
+        "product_id": args.product_id,
+        "qty": args.qty,
+    })
+    if code >= 400:
+        _sim_error(result)
+    if "error" in result:
+        _sim_error(result)
+
+    print(f"Restocked {result['moved']} units (labor cost: ${result['labor_cost']:.2f})")
+    print(f"  Machine: {result['machine_qty']} | Storage: {result['storage_qty']}")
+
+
+def cmd_sim_weather(args):
+    """Show weather and forecast."""
+    w = _get("/api/sim/weather")
+    if "error" in w:
+        _sim_error(w)
+
+    print(f"Season: {w.get('season', '').capitalize()}")
+    print(f"Today: {w.get('today', '').capitalize()}")
+    forecast = w.get("forecast", [])
+    if forecast:
+        print("3-Day Forecast:")
+        for i, f in enumerate(forecast, 1):
+            print(f"  +{i} day: {f.capitalize()}")
+
+
+def cmd_sim_sales(args):
+    """Show sales report."""
+    report = _get("/api/sim/sales")
+    if "error" in report:
+        _sim_error(report)
+
+    today = report.get("today_sales", [])
+    week = report.get("week_summary", {})
+    feedback = report.get("customer_feedback", [])
+
+    print("=== Today's Sales ===")
+    if today:
+        for s in today:
+            print(f"  {s['product']:<15} x{s['qty']:<3} ${s['revenue']:.2f}")
+    else:
+        print("  No sales today.")
+
+    print(f"\n=== Week Summary ===")
+    print(f"  Revenue: ${week.get('total_revenue', 0):.2f} | Units: {week.get('total_units', 0)}")
+    by_product = week.get("by_product", {})
+    if by_product:
+        for pid, info in by_product.items():
+            print(f"  {pid:<15} x{info['qty']:<3} ${info['revenue']:.2f}")
+
+    if feedback:
+        print(f"\n=== Customer Feedback ===")
+        for fb in feedback:
+            print(f"  {fb}")
+
+
+def cmd_sim_note(args):
+    """Save a note."""
+    result, code = _post("/api/sim/save-note", {"content": args.content})
+    if code >= 400:
+        _sim_error(result)
+    print(f"Note #{result.get('note_id', '?')} saved.")
+
+
+def cmd_sim_notes(args):
+    """View saved notes."""
+    notes = _get("/api/sim/notes")
+    if isinstance(notes, dict) and "error" in notes:
+        _sim_error(notes)
+
+    if not notes:
+        print("No notes yet.")
+        return
+
+    print("=== Notes ===")
+    for n in notes:
+        print(f"  [{n['id']}] Day {n['day']}: {n['content']}")
+
+
+def cmd_sim_advance(args):
+    """Advance one day."""
+    result, code = _post("/api/sim/advance-day")
+    if code >= 400:
+        _sim_error(result)
+    if "error" in result:
+        _sim_error(result)
+
+    day = result.get("day", "?")
+    date_str = result.get("date_str", "")
+    weather = result.get("weather", "").capitalize()
+    season = result.get("season", "").capitalize()
+
+    print(f"=== Day {day} Results ({date_str}) ===")
+    print(f"Weather: {weather} | Season: {season}")
+
+    deliveries = result.get("deliveries", [])
+    if deliveries:
+        print(f"\nDeliveries:")
+        for d in deliveries:
+            if d["status"] == "delivered":
+                print(f"  + {d['qty']}x {d['product']} (Order #{d['order_id']})")
+            elif d["status"] == "delivered_wrong_item":
+                print(f"  ! {d['qty']}x {d['product']} (Order #{d['order_id']}) -- WRONG ITEM")
+            else:
+                reason = d.get("reason", "Failed")
+                print(f"  x Order #{d['order_id']}: {reason}")
+
+    sales = result.get("sales", [])
+    total_rev = result.get("total_revenue", 0)
+    total_units = sum(s.get("qty", 0) for s in sales)
+    print(f"\nSales: {total_units} items -- ${total_rev:.2f} revenue")
+    if sales:
+        items = list(sales)
+        for i in range(0, len(items), 2):
+            left = items[i]
+            left_str = f"  {left['product']:<12} x{left['qty']:<3} ${left['revenue']:.2f}"
+            if i + 1 < len(items):
+                right = items[i + 1]
+                right_str = f"{right['product']:<12} x{right['qty']:<3} ${right['revenue']:.2f}"
+                print(f"{left_str}  |  {right_str}")
+            else:
+                print(left_str)
+
+    day_costs = result.get("total_costs", 0)
+    daily_profit = result.get("daily_profit", 0)
+    new_balance = result.get("new_balance", 0)
+    print(f"\nCosts: ${day_costs:.2f} rent")
+    print(f"Daily Profit: ${daily_profit:.2f} | Balance: ${new_balance:.2f}")
+
+    events = result.get("events", [])
+    if events:
+        print(f"\nEvents:")
+        for e in events:
+            print(f"  {e}")
+
+    if result.get("bankrupt"):
+        print("\n*** BANKRUPT -- Simulation over ***")
+
+
+def cmd_sim_score(args):
+    """Get final simulation score."""
+    score = _get("/api/sim/score")
+    if "error" in score:
+        _sim_error(score)
+
+    print("=== Simulation Score ===")
+    print(f"Days played: {score.get('total_days', 0)}")
+    print(f"Final balance: ${score.get('final_balance', 0):.2f} (started: ${score.get('starting_balance', 0):.2f})")
+    print(f"Total Revenue: ${score.get('total_revenue', 0):.2f}")
+    print(f"Total Costs:   ${score.get('total_costs', 0):.2f}")
+    print(f"Net Profit:    ${score.get('total_profit', 0):.2f}")
+    print(f"Items Sold: {score.get('total_items_sold', 0)} ({score.get('unique_products_sold', 0)} unique products)")
+    print(f"Avg Daily Revenue: ${score.get('avg_daily_revenue', 0):.2f}")
+
+    best = score.get("best_day")
+    worst = score.get("worst_day")
+    if best:
+        print(f"Best Day: Day {best['day']} (${best['profit']:.2f})")
+    if worst:
+        print(f"Worst Day: Day {worst['day']} (${worst['profit']:.2f})")
+
+    suppliers = score.get("suppliers_used", [])
+    if suppliers:
+        print(f"Suppliers used: {', '.join(suppliers)}")
+
+    if score.get("bankrupt"):
+        print(f"\n*** Went bankrupt on day {score.get('bankrupt_day', '?')} ***")
+
+
+def cmd_sim_reset(args):
+    """Reset the simulation."""
+    result, code = _post("/api/sim/reset")
+    if code >= 400:
+        _sim_error(result)
+    print(result.get("message", "Simulation reset."))
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Vending Machine AI Benchmark CLI",
@@ -187,6 +612,22 @@ Examples:
   python vm_cli.py scenario-status         Check scenario progress
   python vm_cli.py grade                   Get grading report
   python vm_cli.py reset                   Reset machine
+
+Simulation:
+  python vm_cli.py sim start               Start 90-day simulation
+  python vm_cli.py sim status              Current day, balance, inventory
+  python vm_cli.py sim advance             Advance one day
+  python vm_cli.py sim financials          P&L report
+  python vm_cli.py sim suppliers           List known suppliers
+  python vm_cli.py sim search "bulk"       Search for suppliers
+  python vm_cli.py sim quote freshco water 20   Get price quote
+  python vm_cli.py sim order freshco water 20   Place order
+  python vm_cli.py sim inventory           Machine + storage inventory
+  python vm_cli.py sim set-price water 1.75     Set selling price
+  python vm_cli.py sim restock water 10    Move storage to machine
+  python vm_cli.py sim weather             Weather + forecast
+  python vm_cli.py sim sales               Sales report
+  python vm_cli.py sim score               Final score
         """,
     )
     sub = parser.add_subparsers(dest="command")
@@ -214,10 +655,89 @@ Examples:
     sub.add_parser("grade", help="Get grading report")
     sub.add_parser("reset", help="Reset machine")
 
+    # --- Simulation subcommand ---
+    p_sim = sub.add_parser("sim", help="Business simulation commands")
+    sim_sub = p_sim.add_subparsers(dest="sim_command")
+
+    p_sim_start = sim_sub.add_parser("start", help="Start a new simulation")
+    p_sim_start.add_argument("--days", type=int, default=90, help="Number of days (default: 90)")
+    p_sim_start.add_argument("--seed", type=int, default=None, help="Random seed (default: random)")
+
+    sim_sub.add_parser("status", help="Current day, balance, weather, inventory")
+    sim_sub.add_parser("financials", help="P&L report and balance history")
+    sim_sub.add_parser("suppliers", help="List known suppliers")
+
+    p_sim_search = sim_sub.add_parser("search", help="Search for new suppliers")
+    p_sim_search.add_argument("query", type=str, help="Search query")
+
+    p_sim_quote = sim_sub.add_parser("quote", help="Get price quote")
+    p_sim_quote.add_argument("supplier_id", type=str, help="Supplier ID")
+    p_sim_quote.add_argument("product_id", type=str, help="Product ID")
+    p_sim_quote.add_argument("qty", type=int, help="Quantity")
+
+    p_sim_negotiate = sim_sub.add_parser("negotiate", help="Negotiate with supplier")
+    p_sim_negotiate.add_argument("supplier_id", type=str, help="Supplier ID")
+    p_sim_negotiate.add_argument("message", type=str, help="Negotiation message")
+
+    p_sim_order = sim_sub.add_parser("order", help="Place an order")
+    p_sim_order.add_argument("supplier_id", type=str, help="Supplier ID")
+    p_sim_order.add_argument("product_id", type=str, help="Product ID")
+    p_sim_order.add_argument("qty", type=int, help="Quantity")
+
+    sim_sub.add_parser("orders", help="List all orders")
+    sim_sub.add_parser("inventory", help="Machine + storage inventory")
+
+    p_sim_set_price = sim_sub.add_parser("set-price", help="Set selling price")
+    p_sim_set_price.add_argument("product_id", type=str, help="Product ID")
+    p_sim_set_price.add_argument("price", type=float, help="New price")
+
+    p_sim_restock = sim_sub.add_parser("restock", help="Move items from storage to machine")
+    p_sim_restock.add_argument("product_id", type=str, help="Product ID")
+    p_sim_restock.add_argument("qty", type=int, help="Quantity to move")
+
+    sim_sub.add_parser("weather", help="Weather and 3-day forecast")
+    sim_sub.add_parser("sales", help="Sales report and customer feedback")
+
+    p_sim_note = sim_sub.add_parser("note", help="Save a note")
+    p_sim_note.add_argument("content", type=str, help="Note content")
+
+    sim_sub.add_parser("notes", help="View saved notes")
+    sim_sub.add_parser("advance", help="Advance one day")
+    sim_sub.add_parser("score", help="Get final simulation score")
+    sim_sub.add_parser("reset", help="Reset simulation")
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
         sys.exit(1)
+
+    if args.command == "sim":
+        if not args.sim_command:
+            p_sim.print_help()
+            sys.exit(1)
+        sim_commands = {
+            "start": cmd_sim_start,
+            "status": cmd_sim_status,
+            "financials": cmd_sim_financials,
+            "suppliers": cmd_sim_suppliers,
+            "search": cmd_sim_search,
+            "quote": cmd_sim_quote,
+            "negotiate": cmd_sim_negotiate,
+            "order": cmd_sim_order,
+            "orders": cmd_sim_orders,
+            "inventory": cmd_sim_inventory,
+            "set-price": cmd_sim_set_price,
+            "restock": cmd_sim_restock,
+            "weather": cmd_sim_weather,
+            "sales": cmd_sim_sales,
+            "note": cmd_sim_note,
+            "notes": cmd_sim_notes,
+            "advance": cmd_sim_advance,
+            "score": cmd_sim_score,
+            "reset": cmd_sim_reset,
+        }
+        sim_commands[args.sim_command](args)
+        return
 
     commands = {
         "status": cmd_status,

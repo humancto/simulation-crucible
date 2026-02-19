@@ -55,6 +55,41 @@ body {
   color: var(--accent);
 }
 
+/* Mode Toggle Tabs */
+.mode-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 2px;
+  border: 1px solid var(--border);
+}
+
+.mode-tab {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.mode-tab:hover {
+  color: var(--text);
+}
+
+.mode-tab.active {
+  background: var(--accent);
+  color: var(--bg);
+}
+
 .top-center {
   display: flex;
   align-items: center;
@@ -569,6 +604,352 @@ main {
 .grade-total.F {
   color: var(--red);
   background: rgba(255, 82, 82, 0.08);
+}
+
+/* =========================================================
+   BUSINESS MODE
+   ========================================================= */
+
+/* Business Dashboard — Left Panel */
+#biz-dashboard {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background: radial-gradient(ellipse at center, #15152a 0%, var(--bg) 70%);
+}
+
+.biz-frame {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+/* Day / Weather Header */
+.biz-day-header {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  padding: 14px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+  text-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* Balance Display */
+.biz-balance-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.biz-balance-display {
+  font-family: var(--font-mono);
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--green);
+  text-shadow: 0 0 20px rgba(0, 230, 118, 0.4);
+  letter-spacing: 2px;
+}
+
+.biz-balance-display.negative {
+  color: var(--red);
+  text-shadow: 0 0 20px rgba(255, 82, 82, 0.4);
+}
+
+.biz-balance-trend {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.biz-balance-trend.up {
+  color: var(--green);
+}
+
+.biz-balance-trend.down {
+  color: var(--red);
+}
+
+.biz-balance-trend.flat {
+  color: var(--text-dim);
+}
+
+/* Section Labels */
+.biz-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  padding-left: 4px;
+}
+
+/* Business Inventory Grid */
+.biz-inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.biz-inv-slot {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.biz-inv-slot.stock-good {
+  border-color: rgba(0, 230, 118, 0.4);
+}
+
+.biz-inv-slot.stock-low {
+  border-color: rgba(255, 171, 64, 0.5);
+}
+
+.biz-inv-slot.stock-empty {
+  border-color: rgba(255, 82, 82, 0.4);
+  opacity: 0.5;
+}
+
+.biz-inv-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  line-height: 1.2;
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.biz-inv-qty {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.biz-inv-qty.good {
+  color: var(--green);
+}
+.biz-inv-qty.low {
+  color: var(--orange);
+}
+.biz-inv-qty.empty {
+  color: var(--red);
+}
+
+.biz-inv-price {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Storage Summary */
+.biz-storage {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+
+.biz-storage-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.biz-storage-item {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+/* Business Sidebar — Right Panel */
+#biz-sidebar {
+  width: 420px;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Financial Bar Chart */
+.biz-chart-panel {
+  max-height: 260px;
+}
+
+.biz-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.biz-chart-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.biz-chart-label {
+  color: var(--text-dim);
+  min-width: 50px;
+  text-align: right;
+}
+
+.biz-chart-bar-wrap {
+  flex: 1;
+  height: 16px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.biz-chart-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease-out;
+  min-width: 2px;
+}
+
+.biz-chart-bar.positive {
+  background: linear-gradient(90deg, var(--green), rgba(0, 230, 118, 0.6));
+}
+
+.biz-chart-bar.negative {
+  background: linear-gradient(90deg, var(--red), rgba(255, 82, 82, 0.6));
+}
+
+.biz-chart-value {
+  color: var(--text);
+  font-weight: 600;
+  min-width: 70px;
+}
+
+/* Sales Ticker */
+.biz-sales-panel {
+  max-height: 160px;
+}
+
+.biz-sales {
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.biz-sale-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  background: rgba(0, 230, 118, 0.04);
+  border-left: 2px solid var(--green);
+  animation: fade-in 0.3s;
+}
+
+.biz-sale-product {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.biz-sale-qty {
+  color: var(--text-dim);
+}
+
+.biz-sale-revenue {
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* Orders Panel */
+.biz-orders-panel {
+  max-height: 160px;
+}
+
+.biz-orders {
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.biz-order-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-bottom: 3px;
+  background: var(--surface-2);
+  border-left: 2px solid var(--accent);
+}
+
+.biz-order-product {
+  color: var(--text);
+  font-weight: 600;
+  flex: 1;
+}
+
+.biz-order-qty {
+  color: var(--text-dim);
+  margin: 0 8px;
+}
+
+.biz-order-countdown {
+  color: var(--yellow);
+  font-weight: 700;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* Business Action Log */
+#biz-log-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.biz-action-log {
+  flex: 1;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* Bankrupt overlay */
+.biz-bankrupt {
+  text-align: center;
+  padding: 20px;
+  color: var(--red);
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  text-shadow: 0 0 20px rgba(255, 82, 82, 0.5);
+  animation: pulse-red 1.5s infinite;
 }
 
 /* Scrollbar */

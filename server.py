@@ -6,6 +6,7 @@ import time
 import os
 from flask import Flask, jsonify, request, render_template
 from flask_socketio import SocketIO
+from simulation import VendingSimulation
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "vending-machine-benchmark"
@@ -558,6 +559,217 @@ def api_grade():
 
 
 # ---------------------------------------------------------------------------
+# Business Simulation — state
+# ---------------------------------------------------------------------------
+sim = None
+
+
+def _require_sim():
+    """Return the active sim or None. Caller should check and return 400."""
+    return sim
+
+
+# ---------------------------------------------------------------------------
+# Business Simulation — API endpoints
+# ---------------------------------------------------------------------------
+@app.route("/api/sim/start", methods=["POST"])
+def api_sim_start():
+    global sim
+    data = request.get_json(force=True) if request.is_json else {}
+    days = data.get("days", 90)
+    seed = data.get("seed", None)
+    sim = VendingSimulation(seed=seed, total_days=days)
+    state = sim.get_state()
+    socketio.emit("sim_update", state)
+    return jsonify(state)
+
+
+@app.route("/api/sim/status", methods=["GET"])
+def api_sim_status():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started. POST /api/sim/start first."}), 400
+    state = sim.get_state()
+    return jsonify(state)
+
+
+@app.route("/api/sim/financials", methods=["GET"])
+def api_sim_financials():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    return jsonify(sim.get_financials())
+
+
+@app.route("/api/sim/suppliers", methods=["GET"])
+def api_sim_suppliers():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    return jsonify(sim.get_known_suppliers())
+
+
+@app.route("/api/sim/search-suppliers", methods=["POST"])
+def api_sim_search_suppliers():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    data = request.get_json(force=True) if request.is_json else {}
+    query = data.get("query", "")
+    if not query:
+        return jsonify({"error": "Missing 'query' parameter."}), 400
+    result = sim.search_suppliers(query)
+    socketio.emit("sim_update", sim.get_state())
+    return jsonify(result)
+
+
+@app.route("/api/sim/quote", methods=["POST"])
+def api_sim_quote():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    data = request.get_json(force=True) if request.is_json else {}
+    supplier_id = data.get("supplier_id")
+    product_id = data.get("product_id")
+    qty = data.get("qty")
+    if not all([supplier_id, product_id, qty]):
+        return jsonify({"error": "Missing required fields: supplier_id, product_id, qty."}), 400
+    result = sim.get_quote(supplier_id, product_id, qty)
+    if "error" in result:
+        return jsonify(result), 400
+    return jsonify(result)
+
+
+@app.route("/api/sim/negotiate", methods=["POST"])
+def api_sim_negotiate():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    data = request.get_json(force=True) if request.is_json else {}
+    supplier_id = data.get("supplier_id")
+    message = data.get("message", "")
+    if not supplier_id:
+        return jsonify({"error": "Missing 'supplier_id' parameter."}), 400
+    result = sim.negotiate(supplier_id, message)
+    socketio.emit("sim_update", sim.get_state())
+    return jsonify(result)
+
+
+@app.route("/api/sim/order", methods=["POST"])
+def api_sim_order():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    data = request.get_json(force=True) if request.is_json else {}
+    supplier_id = data.get("supplier_id")
+    product_id = data.get("product_id")
+    qty = data.get("qty")
+    if not all([supplier_id, product_id, qty]):
+        return jsonify({"error": "Missing required fields: supplier_id, product_id, qty."}), 400
+    result = sim.place_order(supplier_id, product_id, qty)
+    if "error" in result:
+        return jsonify(result), 400
+    socketio.emit("sim_update", sim.get_state())
+    return jsonify(result)
+
+
+@app.route("/api/sim/orders", methods=["GET"])
+def api_sim_orders():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    return jsonify(sim.get_orders())
+
+
+@app.route("/api/sim/inventory", methods=["GET"])
+def api_sim_inventory():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    return jsonify(sim.get_inventory())
+
+
+@app.route("/api/sim/set-price", methods=["POST"])
+def api_sim_set_price():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    data = request.get_json(force=True) if request.is_json else {}
+    product_id = data.get("product_id")
+    price = data.get("price")
+    if not product_id or price is None:
+        return jsonify({"error": "Missing required fields: product_id, price."}), 400
+    result = sim.set_price(product_id, price)
+    if "error" in result:
+        return jsonify(result), 400
+    socketio.emit("sim_update", sim.get_state())
+    return jsonify(result)
+
+
+@app.route("/api/sim/restock", methods=["POST"])
+def api_sim_restock():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    data = request.get_json(force=True) if request.is_json else {}
+    product_id = data.get("product_id")
+    qty = data.get("qty")
+    if not product_id or qty is None:
+        return jsonify({"error": "Missing required fields: product_id, qty."}), 400
+    result = sim.restock(product_id, qty)
+    if "error" in result:
+        return jsonify(result), 400
+    socketio.emit("sim_update", sim.get_state())
+    return jsonify(result)
+
+
+@app.route("/api/sim/weather", methods=["GET"])
+def api_sim_weather():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    return jsonify(sim.get_weather())
+
+
+@app.route("/api/sim/sales", methods=["GET"])
+def api_sim_sales():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    return jsonify(sim.get_sales_report())
+
+
+@app.route("/api/sim/save-note", methods=["POST"])
+def api_sim_save_note():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    data = request.get_json(force=True) if request.is_json else {}
+    content = data.get("content", "")
+    if not content:
+        return jsonify({"error": "Missing 'content' parameter."}), 400
+    result = sim.save_note(content)
+    return jsonify(result)
+
+
+@app.route("/api/sim/notes", methods=["GET"])
+def api_sim_notes():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    return jsonify(sim.get_notes())
+
+
+@app.route("/api/sim/advance-day", methods=["POST"])
+def api_sim_advance_day():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    result = sim.advance_day()
+    socketio.emit("sim_update", result)
+    return jsonify(result)
+
+
+@app.route("/api/sim/score", methods=["GET"])
+def api_sim_score():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    return jsonify(sim.get_score())
+
+
+@app.route("/api/sim/reset", methods=["POST"])
+def api_sim_reset():
+    global sim
+    sim = None
+    socketio.emit("sim_update", {"reset": True})
+    return jsonify({"message": "Simulation reset."})
+
+
+# ---------------------------------------------------------------------------
 # WebSocket
 # ---------------------------------------------------------------------------
 @socketio.on("connect")
@@ -579,5 +791,6 @@ if __name__ == "__main__":
     print(f"  ============================")
     print(f"  UI:  http://localhost:{port}")
     print(f"  API: http://localhost:{port}/api/status")
-    print(f"  CLI: python vm_cli.py --help\n")
+    print(f"  Practice Mode: python vm_cli.py start-scenario 1")
+    print(f"  Business Mode:  python vm_cli.py sim start\n")
     socketio.run(app, host="0.0.0.0", port=port, debug=True, allow_unsafe_werkzeug=True)

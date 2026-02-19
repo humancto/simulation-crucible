@@ -1,9 +1,8 @@
 // Vending Machine AI Benchmark — Live UI
-// Note: All data comes from the local Flask server (no user-generated content).
-// innerHTML usage is safe as all values originate from server-controlled state.
+// All DOM manipulation uses safe methods (createElement, textContent, replaceChildren).
 (function () {
-  const socket = io();
-  const SLOT_ORDER = [
+  var socket = io();
+  var SLOT_ORDER = [
     "A1",
     "A2",
     "A3",
@@ -22,29 +21,88 @@
     "D4",
   ];
 
-  let logCount = 0;
+  var logCount = 0;
+  var bizLogCount = 0;
+  var currentMode = "practice"; // "practice" | "business"
+  var lastBizBalance = null;
+  var bizPollTimer = null;
 
   // --- Helper: create element with text ---
   function el(tag, cls, text) {
-    const e = document.createElement(tag);
+    var e = document.createElement(tag);
     if (cls) e.className = cls;
     if (text !== undefined) e.textContent = text;
     return e;
   }
 
+  // =========================================================
+  // MODE TOGGLE
+  // =========================================================
+  function setupModeTabs() {
+    var tabs = document.getElementById("mode-tabs");
+    if (!tabs) return;
+    var buttons = tabs.querySelectorAll(".mode-tab");
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].addEventListener("click", function () {
+        var mode = this.getAttribute("data-mode");
+        switchMode(mode);
+      });
+    }
+  }
+
+  function switchMode(mode) {
+    currentMode = mode;
+
+    // Update tab active states
+    var buttons = document.querySelectorAll(".mode-tab");
+    for (var i = 0; i < buttons.length; i++) {
+      if (buttons[i].getAttribute("data-mode") === mode) {
+        buttons[i].classList.add("active");
+      } else {
+        buttons[i].classList.remove("active");
+      }
+    }
+
+    // Show/hide practice mode elements
+    var practiceEls = document.querySelectorAll(".mode-practice");
+    for (var j = 0; j < practiceEls.length; j++) {
+      practiceEls[j].style.display = mode === "practice" ? "" : "none";
+    }
+
+    // Show/hide business mode elements
+    var businessEls = document.querySelectorAll(".mode-business");
+    for (var k = 0; k < businessEls.length; k++) {
+      businessEls[k].style.display = mode === "business" ? "" : "none";
+    }
+
+    // Start/stop business mode polling
+    if (mode === "business") {
+      startBizPolling();
+      // Fetch initial state
+      fetchBizStatus();
+    } else {
+      stopBizPolling();
+    }
+  }
+
+  // =========================================================
+  // PRACTICE MODE (unchanged logic)
+  // =========================================================
+
   // --- Render item grid ---
   function renderGrid(slots) {
-    const grid = document.getElementById("item-grid");
+    var grid = document.getElementById("item-grid");
     grid.replaceChildren();
-    for (const code of SLOT_ORDER) {
-      const s = slots[code];
+    for (var i = 0; i < SLOT_ORDER.length; i++) {
+      var code = SLOT_ORDER[i];
+      var s = slots[code];
       if (!s) continue;
-      const div = el("div", "slot" + (s.qty <= 0 ? " out-of-stock" : ""));
+      var div = el("div", "slot" + (s.qty <= 0 ? " out-of-stock" : ""));
       div.appendChild(el("div", "slot-code", code));
       div.appendChild(el("div", "slot-item", s.item));
       div.appendChild(el("div", "slot-price", "$" + s.price.toFixed(2)));
-      const qtyClass = s.qty <= 0 ? "empty" : s.qty <= 2 ? "low" : "";
-      const qtyLabel = s.qty <= 0 ? "OUT OF STOCK" : "Qty: " + s.qty;
+      var qtyClass = s.qty <= 0 ? "empty" : s.qty <= 2 ? "low" : "";
+      var qtyLabel = s.qty <= 0 ? "OUT OF STOCK" : "Qty: " + s.qty;
       div.appendChild(el("div", "slot-qty " + qtyClass, qtyLabel));
       grid.appendChild(div);
     }
@@ -58,7 +116,7 @@
 
   // --- Update status ---
   function updateStatus(status) {
-    const statusEl = document.getElementById("machine-status");
+    var statusEl = document.getElementById("machine-status");
     statusEl.textContent = status.toUpperCase();
     statusEl.className = "status-indicator";
     if (status === "jammed") statusEl.classList.add("jammed");
@@ -67,14 +125,14 @@
 
   // --- Update dispensing tray ---
   function updateTray(items) {
-    const tray = document.getElementById("dispense-tray");
+    var tray = document.getElementById("dispense-tray");
     tray.replaceChildren();
     if (!items || items.length === 0) {
       tray.appendChild(el("span", "empty-tray", "Empty"));
       return;
     }
-    for (const i of items) {
-      tray.appendChild(el("span", "tray-item", i.item));
+    for (var i = 0; i < items.length; i++) {
+      tray.appendChild(el("span", "tray-item", items[i].item));
     }
   }
 
@@ -86,8 +144,8 @@
 
   // --- Scenario bar ---
   function updateScenarioBar(scenario) {
-    const label = document.getElementById("scenario-label");
-    const timer = document.getElementById("scenario-timer");
+    var label = document.getElementById("scenario-label");
+    var timer = document.getElementById("scenario-timer");
     if (!scenario || !scenario.active) {
       label.textContent = "No scenario active";
       label.className = "";
@@ -97,12 +155,9 @@
     label.textContent = "#" + scenario.id + " " + scenario.name;
     label.className = "active";
     if (scenario.time_limit) {
-      const remaining = Math.max(
-        0,
-        scenario.time_limit - scenario.time_elapsed,
-      );
-      const mins = Math.floor(remaining / 60);
-      const secs = Math.floor(remaining % 60);
+      var remaining = Math.max(0, scenario.time_limit - scenario.time_elapsed);
+      var mins = Math.floor(remaining / 60);
+      var secs = Math.floor(remaining % 60);
       timer.textContent =
         mins +
         ":" +
@@ -112,7 +167,7 @@
     }
   }
 
-  // --- Full state update ---
+  // --- Full state update (practice mode) ---
   function onStateUpdate(state) {
     renderGrid(state.slots);
     updateBalance(state.balance);
@@ -122,17 +177,14 @@
     updateScenarioBar(state.scenario);
   }
 
-  // --- Action log ---
+  // --- Action log (practice mode) ---
   function addLogEntry(entry) {
-    const log = document.getElementById("action-log");
-    const empty = log.querySelector(".log-empty");
+    var log = document.getElementById("action-log");
+    var empty = log.querySelector(".log-empty");
     if (empty) empty.remove();
 
-    const div = el(
-      "div",
-      "log-entry " + (entry.success ? "success" : "failure"),
-    );
-    const step = entry.step !== null ? "#" + entry.step : "";
+    var div = el("div", "log-entry " + (entry.success ? "success" : "failure"));
+    var step = entry.step !== null ? "#" + entry.step : "";
     div.appendChild(el("span", "log-step", step));
     div.appendChild(el("span", "log-action", entry.action));
     div.appendChild(el("span", "log-detail", entry.detail));
@@ -150,18 +202,18 @@
         return r.json();
       })
       .then(function (scenarios) {
-        const list = document.getElementById("scenario-list");
+        var list = document.getElementById("scenario-list");
         list.replaceChildren();
-        for (const s of scenarios) {
-          const div = el(
+        for (var i = 0; i < scenarios.length; i++) {
+          var s = scenarios[i];
+          var div = el(
             "div",
             "scenario-item" + (s.completed ? " completed" : ""),
           );
           div.appendChild(el("span", "scenario-id", String(s.id)));
           div.appendChild(el("span", "scenario-name", s.name));
           if (s.completed && s.score !== null) {
-            const sClass =
-              s.score >= 80 ? "good" : s.score >= 60 ? "ok" : "bad";
+            var sClass = s.score >= 80 ? "good" : s.score >= 60 ? "ok" : "bad";
             div.appendChild(
               el("span", "scenario-score " + sClass, s.score + "/100"),
             );
@@ -170,16 +222,17 @@
           }
           list.appendChild(div);
         }
-      });
+      })
+      .catch(function () {});
   }
 
   // --- Grade report ---
   function showGrade(report) {
-    const panel = document.getElementById("grade-panel");
-    const gradeEl = document.getElementById("grade-report");
+    var panel = document.getElementById("grade-panel");
+    var gradeEl = document.getElementById("grade-report");
     panel.style.display = "block";
 
-    const c = report.current || Object.values(report.scenario_scores)[0];
+    var c = report.current || Object.values(report.scenario_scores)[0];
     if (!c) return;
 
     function barClass(pct) {
@@ -187,11 +240,11 @@
     }
 
     function section(label, score, max) {
-      const pct = score / max;
-      const sec = el("div", "grade-section");
+      var pct = score / max;
+      var sec = el("div", "grade-section");
       sec.appendChild(el("div", "grade-label", label));
-      const bar = el("div", "grade-bar");
-      const fill = el("div", "grade-bar-fill " + barClass(pct));
+      var bar = el("div", "grade-bar");
+      var fill = el("div", "grade-bar-fill " + barClass(pct));
       fill.style.width = pct * 100 + "%";
       bar.appendChild(fill);
       sec.appendChild(bar);
@@ -212,10 +265,10 @@
     gradeEl.appendChild(
       section("Error Handling", c.error_handling.score, c.error_handling.max),
     );
-    const total = el(
+    var total = el(
       "div",
       "grade-total " + report.letter_grade,
-      report.average_score + "/100 — Grade " + report.letter_grade,
+      report.average_score + "/100 -- Grade " + report.letter_grade,
     );
     gradeEl.appendChild(total);
 
@@ -225,21 +278,365 @@
     loadScenarios();
   }
 
-  // --- Socket events ---
+  // =========================================================
+  // BUSINESS MODE
+  // =========================================================
+
+  function fetchBizStatus() {
+    fetch("/api/sim/status")
+      .then(function (r) {
+        if (!r.ok) return null;
+        return r.json();
+      })
+      .then(function (data) {
+        if (data) renderBizState(data);
+      })
+      .catch(function () {});
+  }
+
+  function startBizPolling() {
+    if (bizPollTimer) return;
+    bizPollTimer = setInterval(fetchBizStatus, 3000);
+  }
+
+  function stopBizPolling() {
+    if (bizPollTimer) {
+      clearInterval(bizPollTimer);
+      bizPollTimer = null;
+    }
+  }
+
+  // --- Main business state renderer ---
+  function renderBizState(state) {
+    renderBizDayHeader(state);
+    renderBizBalance(state);
+    renderBizInventory(state);
+    renderBizStorage(state);
+    renderBizChart(state);
+    renderBizSales(state);
+    renderBizOrders(state);
+
+    // Update score display
+    if (state.balance !== undefined) {
+      var scoreEl = document.getElementById("score-display");
+      scoreEl.textContent = "Balance: $" + state.balance.toFixed(2);
+    }
+
+    // Check bankrupt
+    if (state.bankrupt) {
+      var header = document.getElementById("biz-day-header");
+      header.className = "biz-day-header";
+      header.textContent = "BANKRUPT -- SIMULATION OVER";
+      header.style.color = "var(--red)";
+    }
+  }
+
+  // --- Day / Weather header ---
+  function renderBizDayHeader(state) {
+    var header = document.getElementById("biz-day-header");
+    if (!header) return;
+
+    var day = state.day || 0;
+    var dateStr = state.date_str || "";
+    var season = state.season || "";
+    var weather = state.weather || "";
+
+    // Capitalize first letter
+    function cap(s) {
+      return s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+    }
+
+    header.textContent =
+      "Day " +
+      day +
+      " -- " +
+      dateStr +
+      " -- " +
+      cap(season) +
+      " -- " +
+      cap(weather);
+  }
+
+  // --- Balance display with trend ---
+  function renderBizBalance(state) {
+    var balEl = document.getElementById("biz-balance");
+    var trendEl = document.getElementById("biz-trend");
+    if (!balEl) return;
+
+    var balance = state.balance !== undefined ? state.balance : 0;
+    balEl.textContent = "$" + balance.toFixed(2);
+    if (balance < 0) {
+      balEl.className = "biz-balance-display negative";
+    } else {
+      balEl.className = "biz-balance-display";
+    }
+
+    // Trend arrow based on previous balance
+    if (trendEl) {
+      if (lastBizBalance !== null) {
+        var diff = balance - lastBizBalance;
+        if (diff > 0.01) {
+          trendEl.textContent = "+$" + diff.toFixed(2);
+          trendEl.className = "biz-balance-trend up";
+        } else if (diff < -0.01) {
+          trendEl.textContent = "-$" + Math.abs(diff).toFixed(2);
+          trendEl.className = "biz-balance-trend down";
+        } else {
+          trendEl.textContent = "--";
+          trendEl.className = "biz-balance-trend flat";
+        }
+      } else {
+        trendEl.textContent = "";
+        trendEl.className = "biz-balance-trend";
+      }
+      lastBizBalance = balance;
+    }
+  }
+
+  // --- Machine Inventory Grid ---
+  function renderBizInventory(state) {
+    var grid = document.getElementById("biz-inventory-grid");
+    if (!grid) return;
+
+    var inv = state.machine_inventory || {};
+    var products = state.products || {};
+    var pids = Object.keys(inv);
+
+    grid.replaceChildren();
+
+    if (pids.length === 0) {
+      grid.appendChild(el("div", "log-empty", "Machine is empty"));
+      return;
+    }
+
+    for (var i = 0; i < pids.length; i++) {
+      var pid = pids[i];
+      var item = inv[pid];
+      var qty = item.qty || 0;
+      var price = item.price || 0;
+      var name = products[pid] && products[pid].name ? products[pid].name : pid;
+
+      var stockClass =
+        qty <= 0 ? "stock-empty" : qty <= 3 ? "stock-low" : "stock-good";
+      var slot = el("div", "biz-inv-slot " + stockClass);
+      slot.appendChild(el("div", "biz-inv-name", name));
+
+      var qtyClass = qty <= 0 ? "empty" : qty <= 3 ? "low" : "good";
+      slot.appendChild(el("div", "biz-inv-qty " + qtyClass, String(qty)));
+      slot.appendChild(el("div", "biz-inv-price", "$" + price.toFixed(2)));
+
+      grid.appendChild(slot);
+    }
+  }
+
+  // --- Storage Summary ---
+  function renderBizStorage(state) {
+    var storageEl = document.getElementById("biz-storage");
+    var detailEl = document.getElementById("biz-storage-detail");
+    if (!storageEl) return;
+
+    var storage = state.storage_inventory || {};
+    var capacity = state.storage_capacity || 200;
+    var products = state.products || {};
+
+    var totalItems = 0;
+    var pids = Object.keys(storage);
+    for (var i = 0; i < pids.length; i++) {
+      totalItems += storage[pids[i]];
+    }
+
+    storageEl.textContent =
+      "Storage: " + totalItems + "/" + capacity + " items";
+
+    if (detailEl) {
+      detailEl.replaceChildren();
+      for (var j = 0; j < pids.length; j++) {
+        var pid = pids[j];
+        var qty = storage[pid];
+        if (qty <= 0) continue;
+        var name =
+          products[pid] && products[pid].name ? products[pid].name : pid;
+        detailEl.appendChild(el("span", "biz-storage-item", name + ": " + qty));
+      }
+    }
+  }
+
+  // --- Financial Bar Chart (last 7 days) ---
+  function renderBizChart(state) {
+    var chart = document.getElementById("biz-chart");
+    if (!chart) return;
+
+    var history = state.daily_history || [];
+    // Show last 7 entries
+    var entries = history.slice(-7);
+
+    if (entries.length === 0) {
+      chart.replaceChildren();
+      chart.appendChild(el("div", "log-empty", "No history yet"));
+      return;
+    }
+
+    // Find max balance for scaling
+    var maxBal = 0;
+    for (var i = 0; i < entries.length; i++) {
+      var absBal = Math.abs(entries[i].balance);
+      if (absBal > maxBal) maxBal = absBal;
+    }
+    if (maxBal === 0) maxBal = 1;
+
+    chart.replaceChildren();
+
+    for (var j = 0; j < entries.length; j++) {
+      var e = entries[j];
+      var row = el("div", "biz-chart-row");
+
+      row.appendChild(el("span", "biz-chart-label", "Day " + e.day));
+
+      var barWrap = el("div", "biz-chart-bar-wrap");
+      var barPct = (Math.abs(e.balance) / maxBal) * 100;
+      var barClass = e.balance >= 0 ? "positive" : "negative";
+      var bar = el("div", "biz-chart-bar " + barClass);
+      bar.style.width = Math.max(2, barPct) + "%";
+      barWrap.appendChild(bar);
+      row.appendChild(barWrap);
+
+      row.appendChild(
+        el("span", "biz-chart-value", "$" + e.balance.toFixed(2)),
+      );
+
+      chart.appendChild(row);
+    }
+  }
+
+  // --- Sales Ticker ---
+  function renderBizSales(state) {
+    var salesEl = document.getElementById("biz-sales");
+    if (!salesEl) return;
+
+    var sales = state.today_sales || [];
+
+    if (sales.length === 0) {
+      salesEl.replaceChildren();
+      salesEl.appendChild(el("div", "log-empty", "No sales yet"));
+      return;
+    }
+
+    var products = state.products || {};
+    salesEl.replaceChildren();
+
+    for (var i = 0; i < sales.length; i++) {
+      var s = sales[i];
+      var name =
+        products[s.product] && products[s.product].name
+          ? products[s.product].name
+          : s.product;
+
+      var entry = el("div", "biz-sale-entry");
+      entry.appendChild(el("span", "biz-sale-product", name));
+      entry.appendChild(el("span", "biz-sale-qty", "x" + s.qty));
+      entry.appendChild(
+        el("span", "biz-sale-revenue", "+$" + s.revenue.toFixed(2)),
+      );
+      salesEl.appendChild(entry);
+    }
+  }
+
+  // --- Pending Orders ---
+  function renderBizOrders(state) {
+    var ordersEl = document.getElementById("biz-orders");
+    if (!ordersEl) return;
+
+    var orders = state.pending_orders || [];
+    var products = state.products || {};
+    var currentDay = state.day || 0;
+
+    if (orders.length === 0) {
+      ordersEl.replaceChildren();
+      ordersEl.appendChild(el("div", "log-empty", "No pending orders"));
+      return;
+    }
+
+    ordersEl.replaceChildren();
+
+    for (var i = 0; i < orders.length; i++) {
+      var o = orders[i];
+      var name =
+        products[o.product] && products[o.product].name
+          ? products[o.product].name
+          : o.product;
+      var daysLeft = (o.expected_delivery_day || 0) - currentDay;
+      if (daysLeft < 0) daysLeft = 0;
+
+      var entry = el("div", "biz-order-entry");
+      entry.appendChild(el("span", "biz-order-product", name));
+      entry.appendChild(el("span", "biz-order-qty", "x" + o.qty));
+
+      var countdown = daysLeft === 0 ? "TODAY" : daysLeft + "d left";
+      entry.appendChild(el("span", "biz-order-countdown", countdown));
+
+      ordersEl.appendChild(entry);
+    }
+  }
+
+  // --- Business mode action log ---
+  function addBizLogEntry(entry) {
+    var log = document.getElementById("biz-action-log");
+    if (!log) return;
+
+    var empty = log.querySelector(".log-empty");
+    if (empty) empty.remove();
+
+    var div = el("div", "log-entry " + (entry.success ? "success" : "failure"));
+    var step =
+      entry.step !== null && entry.step !== undefined ? "#" + entry.step : "";
+    div.appendChild(el("span", "log-step", step));
+    div.appendChild(el("span", "log-action", entry.action));
+    div.appendChild(el("span", "log-detail", entry.detail || ""));
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+
+    bizLogCount++;
+    var countEl = document.getElementById("biz-log-count");
+    if (countEl) countEl.textContent = bizLogCount;
+  }
+
+  // =========================================================
+  // SOCKET EVENTS
+  // =========================================================
   socket.on("state_update", onStateUpdate);
-  socket.on("action", addLogEntry);
+  socket.on("action", function (entry) {
+    addLogEntry(entry);
+    addBizLogEntry(entry);
+  });
   socket.on("grade_update", showGrade);
 
-  // --- Initial load ---
+  // Business simulation updates
+  socket.on("sim_update", function (state) {
+    if (currentMode === "business") {
+      renderBizState(state);
+    }
+  });
+
+  socket.on("sim_action", function (entry) {
+    addBizLogEntry(entry);
+  });
+
+  // =========================================================
+  // INITIAL LOAD
+  // =========================================================
+  setupModeTabs();
+
   fetch("/api/status")
     .then(function (r) {
       return r.json();
     })
-    .then(onStateUpdate);
+    .then(onStateUpdate)
+    .catch(function () {});
   loadScenarios();
 
-  // --- Poll scenario timer every second ---
+  // --- Poll scenario timer every second (practice mode) ---
   setInterval(function () {
+    if (currentMode !== "practice") return;
     fetch("/api/scenario/status")
       .then(function (r) {
         return r.json();
