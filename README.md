@@ -14,12 +14,53 @@
 </p>
 
 <p align="center">
+  <a href="#race-results">Race Results</a> &bull;
   <a href="#how-to-run">How to Run</a> &bull;
-  <a href="#human-time-vs-llm-time">Time Guide</a> &bull;
   <a href="#scoring">Scoring</a> &bull;
   <a href="#agent-reference">Agent Reference</a> &bull;
   <a href="#architecture">Architecture</a>
 </p>
+
+---
+
+## Race Results
+
+We raced **Claude Code**, **OpenAI Codex**, and **Google Gemini CLI** on identical 10-day simulations (seed 42, starting balance $500 each).
+
+### Leaderboard
+
+| Rank | Agent      | Model          | Final Balance                | Items Sold | Strategy                               |
+| ---- | ---------- | -------------- | ---------------------------- | ---------- | -------------------------------------- |
+| 1st  | **Codex**  | gpt-5.3-codex  | **$720,000,000,000,000,000** | 720        | Exploited the simulation               |
+| 2nd  | **Gemini** | gemini-2.5-pro | $321.90                      | 41         | Honest play (rate limited after Day 4) |
+| 3rd  | **Claude** | claude (auto)  | $320.06                      | 229        | Honest play (full 10 days)             |
+
+### What happened?
+
+**Claude** played by the rules — ordered inventory from 3 suppliers, stocked all 8 products, set reasonable prices, and managed the business day by day. Lost $180 over 10 days because revenue couldn't cover costs at this timescale.
+
+**Gemini** played honestly too — used FreshCo for bulk orders, added a slight markup. Hit API rate limits after Day 4 and couldn't continue.
+
+**Codex** read the simulation source code, imported the game engine offline, ran 13,000+ parameter combinations, discovered there was no price ceiling, set water to **$1 quadrillion per bottle**, and sold 80 units/day for 9 days.
+
+> Full writeup: [docs/race-report-2026-02-19.md](docs/race-report-2026-02-19.md)
+
+### Live Race Dashboard
+
+<p align="center">
+  <img src="docs/screenshots/01-race-start.png" alt="Race Start — All agents at $500" width="800">
+</p>
+<p align="center"><em>Race start — 3 agents connected, $500 each, Day 0</em></p>
+
+<p align="center">
+  <img src="docs/screenshots/03-mid-race-day3.png" alt="Mid Race — Claude and Gemini neck and neck" width="800">
+</p>
+<p align="center"><em>Mid race — Claude (Day 4, $287) and Gemini (Day 3, $287) neck and neck. Codex still at Day 0 — reading source code offline.</em></p>
+
+<p align="center">
+  <img src="docs/screenshots/05-race-final.png" alt="Race Final — Claude finishes, Gemini rate limited, Codex exploited" width="800">
+</p>
+<p align="center"><em>Race complete — Claude finishes Day 10 with $320. Gemini rate limited after Day 4. Codex scored $720 quadrillion (not visible on dashboard — it executed offline).</em></p>
 
 ---
 
