@@ -13,6 +13,11 @@
             <div class="top-left">
                 <h1>VENDING MACHINE <span class="accent">AI BENCHMARK</span></h1>
             </div>
+            <nav class="top-nav">
+                <a href="/" class="nav-link active">Benchmark</a>
+                <a href="/race" class="nav-link">Live Race</a>
+                <a href="/results" class="nav-link">Results</a>
+            </nav>
             <div class="mode-tabs" id="mode-tabs">
                 <button class="mode-tab active" data-mode="practice">Practice Mode</button>
                 <button class="mode-tab" data-mode="business">Business Mode</button>
@@ -81,6 +86,21 @@
             <!-- Business Mode: Left — Dashboard -->
             <section id="biz-dashboard" class="mode-business" style="display:none;">
                 <div class="biz-frame">
+                    <!-- Autopilot Controls -->
+                    <div class="autopilot-bar" id="autopilot-bar">
+                        <div class="autopilot-left">
+                            <button class="autopilot-btn" id="autopilot-play" title="Start autopilot">PLAY</button>
+                            <button class="autopilot-btn" id="autopilot-stop" title="Stop autopilot" disabled>STOP</button>
+                        </div>
+                        <div class="autopilot-speeds" id="autopilot-speeds">
+                            <button class="speed-btn active" data-speed="1">1x</button>
+                            <button class="speed-btn" data-speed="2">2x</button>
+                            <button class="speed-btn" data-speed="5">5x</button>
+                            <button class="speed-btn" data-speed="10">10x</button>
+                        </div>
+                        <div class="autopilot-status" id="autopilot-status">IDLE</div>
+                    </div>
+
                     <div id="biz-day-header" class="biz-day-header">
                         Day 0 -- March 01 -- Spring -- Sunny
                     </div>

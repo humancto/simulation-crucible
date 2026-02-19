@@ -607,6 +607,120 @@
   }
 
   // =========================================================
+  // AUTOPILOT (FAST-FORWARD) CONTROLS
+  // =========================================================
+  var autopilotRunning = false;
+  var autopilotSpeed = 1;
+
+  function setupAutopilot() {
+    var playBtn = document.getElementById("autopilot-play");
+    var stopBtn = document.getElementById("autopilot-stop");
+    var speedBtns = document.querySelectorAll(".speed-btn");
+    var statusEl = document.getElementById("autopilot-status");
+
+    if (!playBtn) return;
+
+    playBtn.addEventListener("click", function () {
+      if (autopilotRunning) return;
+      startAutopilot();
+    });
+
+    stopBtn.addEventListener("click", function () {
+      if (!autopilotRunning) return;
+      stopAutopilot();
+    });
+
+    for (var i = 0; i < speedBtns.length; i++) {
+      speedBtns[i].addEventListener("click", function () {
+        var speed = parseInt(this.getAttribute("data-speed"), 10);
+        setAutopilotSpeed(speed);
+      });
+    }
+  }
+
+  function startAutopilot() {
+    var body = {
+      speed: autopilotSpeed,
+      days: 90,
+      name: "autopilot",
+      reset: true,
+    };
+    fetch("/api/sim/autopilot/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (data) {
+        if (data.error) return;
+        autopilotRunning = true;
+        updateAutopilotUI();
+      })
+      .catch(function () {});
+  }
+
+  function stopAutopilot() {
+    fetch("/api/sim/autopilot/stop", { method: "POST" })
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function () {
+        autopilotRunning = false;
+        updateAutopilotUI();
+      })
+      .catch(function () {});
+  }
+
+  function setAutopilotSpeed(speed) {
+    autopilotSpeed = speed;
+
+    // Update active button
+    var btns = document.querySelectorAll(".speed-btn");
+    for (var i = 0; i < btns.length; i++) {
+      if (parseInt(btns[i].getAttribute("data-speed"), 10) === speed) {
+        btns[i].classList.add("active");
+      } else {
+        btns[i].classList.remove("active");
+      }
+    }
+
+    // If running, change speed live
+    if (autopilotRunning) {
+      fetch("/api/sim/autopilot/speed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ speed: speed }),
+      }).catch(function () {});
+    }
+  }
+
+  function updateAutopilotUI() {
+    var playBtn = document.getElementById("autopilot-play");
+    var stopBtn = document.getElementById("autopilot-stop");
+    var statusEl = document.getElementById("autopilot-status");
+
+    if (!playBtn) return;
+
+    if (autopilotRunning) {
+      playBtn.classList.add("running");
+      playBtn.textContent = "RUNNING";
+      playBtn.disabled = true;
+      stopBtn.disabled = false;
+      statusEl.textContent = autopilotSpeed + "x FAST-FORWARD";
+      statusEl.className = "autopilot-status running";
+    } else {
+      playBtn.classList.remove("running");
+      playBtn.textContent = "PLAY";
+      playBtn.disabled = false;
+      stopBtn.disabled = true;
+      statusEl.textContent = "IDLE";
+      statusEl.className = "autopilot-status";
+    }
+  }
+
+  // =========================================================
   // SOCKET EVENTS
   // =========================================================
   socket.on("state_update", onStateUpdate);
@@ -621,6 +735,24 @@
     if (currentMode === "business") {
       renderBizState(state);
     }
+    // Detect autopilot completion
+    if (state.autopilot === false && autopilotRunning) {
+      autopilotRunning = false;
+      var statusEl = document.getElementById("autopilot-status");
+      if (statusEl) {
+        statusEl.textContent = state.simulation_complete
+          ? "COMPLETE"
+          : "STOPPED";
+        statusEl.className = "autopilot-status finished";
+      }
+      updateAutopilotUI();
+    }
+    // Update speed display if autopilot is running
+    if (state.autopilot && state.autopilot_speed) {
+      autopilotSpeed = state.autopilot_speed;
+      autopilotRunning = true;
+      updateAutopilotUI();
+    }
   });
 
   socket.on("sim_action", function (entry) {
@@ -631,6 +763,7 @@
   // INITIAL LOAD
   // =========================================================
   setupModeTabs();
+  setupAutopilot();
 
   fetch("/api/status")
     .then(function (r) {

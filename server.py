@@ -4,18 +4,286 @@
 import json
 import time
 import os
+import threading
 from flask import Flask, jsonify, request, render_template
 from flask_socketio import SocketIO
 from simulation import VendingSimulation
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "vending-machine-benchmark"
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", manage_session=False)
 
 # ---------------------------------------------------------------------------
 # Player registration (for race mode)
 # ---------------------------------------------------------------------------
 player_info = {"name": None}
+
+# ---------------------------------------------------------------------------
+# Autopilot (fast-forward) state
+# ---------------------------------------------------------------------------
+autopilot = {
+    "running": False,
+    "speed": 1,           # 1=1x, 2=2x, 5=5x, 10=10x
+    "thread": None,
+    "stop_event": threading.Event(),
+}
+
+PRODUCTS = ["water", "soda", "energy_drink", "juice", "chips", "candy_bar", "trail_mix", "cookies"]
+
+def _emit_action(action, detail, success=True):
+    """Emit an action event with player tag."""
+    entry = {"time": time.time(), "action": action, "detail": detail, "success": success}
+    if player_info["name"]:
+        entry["player"] = player_info["name"]
+    socketio.emit("sim_action", entry)
+
+
+def _autopilot_loop():
+    """Smart bot that manages the vending business automatically.
+
+    Emits detailed reasoning logs so the live ticker shows what the bot
+    is thinking and doing at every step.
+    """
+    global sim
+    speed = autopilot["speed"]
+    stop = autopilot["stop_event"]
+
+    # Base delay between days (seconds): 2s at 1x, 1s at 2x, 0.4s at 5x, 0.2s at 10x
+    base_delay = 2.0 / max(speed, 1)
+
+    # Emit initial state
+    if sim:
+        state = _tag_sim_state(sim.get_state())
+        state["autopilot"] = True
+        state["autopilot_speed"] = speed
+        socketio.emit("sim_update", state)
+
+    _emit_action("strategy", f"Autopilot engaged at {speed}x speed for {sim.total_days} days")
+
+    last_order_day = -10  # force immediate order
+
+    while not stop.is_set():
+        if not sim or sim.bankrupt or sim.day >= sim.total_days:
+            break
+
+        current_day = sim.day
+        weather_today = sim._weather[current_day] if current_day < len(sim._weather) else "cloudy"
+        season = sim._get_season(max(current_day, 1))
+        day_of_week = sim._day_of_week()
+        is_weekend = day_of_week in ("saturday", "sunday")
+
+        # --- Decision: Order inventory ---
+        should_order = False
+        order_reason = ""
+
+        if current_day == 0:
+            should_order = True
+            order_reason = "Day 0: Initial bulk order to fill empty machine"
+        elif current_day - last_order_day >= 8:
+            should_order = True
+            order_reason = f"Day {current_day}: Scheduled reorder (every 8 days)"
+        else:
+            # Check if machine + storage is low
+            total_stock = sum(sim.storage_inventory.values()) + sum(
+                info["qty"] for info in sim.machine_inventory.values()
+            )
+            if total_stock < 30 and sim.balance > 150:
+                should_order = True
+                order_reason = f"Day {current_day}: Stock critically low ({total_stock} items), emergency reorder"
+
+        if should_order:
+            _emit_action("thinking", order_reason)
+
+            # Decide quantities based on season
+            drink_boost = 1.0
+            snack_boost = 1.0
+            if season == "summer":
+                drink_boost = 1.4
+                _emit_action("thinking", f"Summer season: boosting drink orders by 40%")
+            elif season == "winter":
+                snack_boost = 1.3
+                _emit_action("thinking", f"Winter season: boosting snack orders by 30%")
+
+            # Weekend pre-stock
+            order_multiplier = 1.0
+            if is_weekend or day_of_week == "friday":
+                order_multiplier = 1.3
+                _emit_action("thinking", f"Weekend approaching: ordering 30% extra")
+
+            drink_products = ["water", "soda", "energy_drink", "juice"]
+            snack_products = ["chips", "candy_bar", "trail_mix", "cookies"]
+            ordered_count = 0
+            total_cost = 0.0
+
+            for pid in PRODUCTS:
+                base_qty = 15
+                if pid in drink_products:
+                    qty = int(base_qty * drink_boost * order_multiplier)
+                else:
+                    qty = int(base_qty * snack_boost * order_multiplier)
+                qty = max(5, min(qty, 25))  # clamp 5-25
+
+                try:
+                    result = sim.place_order("freshco", pid, qty)
+                    if "error" not in result:
+                        ordered_count += qty
+                        total_cost += result.get("total_cost", 0)
+                    else:
+                        _emit_action("order-fail", f"Cannot order {pid}: {result.get('error', '')}", success=False)
+                except Exception:
+                    pass
+
+            if ordered_count > 0:
+                _emit_action("order", f"Ordered {ordered_count} items from FreshCo (${total_cost:.2f}) — delivery in 2 days")
+
+            # Quick-order popular items from QuickStock on day 0
+            if current_day == 0:
+                _emit_action("thinking", "QuickStock: ordering popular items for Day 1 sales (1-day delivery)")
+                qs_count = 0
+                qs_cost = 0.0
+                for pid in ["water", "soda", "chips", "candy_bar"]:
+                    try:
+                        result = sim.place_order("quickstock", pid, 10)
+                        if "error" not in result:
+                            qs_count += 10
+                            qs_cost += result.get("total_cost", 0)
+                    except Exception:
+                        pass
+                if qs_count > 0:
+                    _emit_action("order", f"QuickStock rush order: {qs_count} items (${qs_cost:.2f}) — arrives tomorrow")
+
+            last_order_day = current_day
+
+        # --- Dynamic pricing based on weather and season ---
+        pricing_changes = []
+        for pid in PRODUCTS:
+            product = sim.products[pid]
+            base_price = product["default_price"]
+            category = product["category"]
+            price = base_price
+
+            # Weather-based adjustments
+            if weather_today == "hot" and category == "drink":
+                price = round(base_price * 1.15, 2)
+            elif weather_today == "cold" and category == "snack":
+                price = round(base_price * 1.10, 2)
+            elif weather_today == "rainy":
+                price = round(base_price * 0.95, 2)
+
+            # Weekend premium
+            if is_weekend:
+                price = round(price * 1.05, 2)
+
+            old_price = sim._prices.get(pid, base_price)
+            if abs(price - old_price) > 0.01:
+                try:
+                    sim.set_price(pid, price)
+                    pricing_changes.append(f"{pid}: ${old_price:.2f}→${price:.2f}")
+                except Exception:
+                    pass
+
+        if pricing_changes:
+            _emit_action("pricing", "Adjusted prices: " + ", ".join(pricing_changes[:4]))
+
+        # --- Restock machine from storage ---
+        restocked_items = []
+        total_moved = 0
+        for pid in PRODUCTS:
+            storage_qty = sim.storage_inventory.get(pid, 0)
+            if storage_qty > 0:
+                machine_qty = sim.machine_inventory.get(pid, {}).get("qty", 0) if pid in sim.machine_inventory else 0
+                need = 10 - machine_qty
+                if need > 0:
+                    move = min(need, storage_qty)
+                    try:
+                        result = sim.restock(pid, move)
+                        if "error" not in result:
+                            restocked_items.append(f"{move}x {pid}")
+                            total_moved += move
+                    except Exception:
+                        pass
+
+        if restocked_items:
+            _emit_action("restock", f"Restocked {total_moved} items: " + ", ".join(restocked_items[:5]))
+
+        # --- Advance day ---
+        try:
+            result = sim.advance_day()
+            # Build a rich state by merging advance_day result with full state + financials
+            tagged = _tag_sim_state(result)
+            full_state = sim.get_state()
+            financials = sim.get_financials()
+            tagged["machine_inventory"] = full_state.get("machine_inventory", {})
+            tagged["storage_inventory"] = full_state.get("storage_inventory", {})
+            tagged["pending_orders"] = full_state.get("pending_orders", [])
+            tagged["daily_history"] = financials.get("daily_history", [])
+            tagged["today_sales"] = result.get("sales", [])
+            tagged["products"] = {pid: {"name": p["name"], "category": p["category"]} for pid, p in sim.products.items()}
+            tagged["storage_capacity"] = sim.storage_capacity
+            tagged["autopilot"] = True
+            tagged["autopilot_speed"] = speed
+            tagged["total_days"] = sim.total_days
+            tagged["total_profit"] = round(sim.total_revenue - sim.total_costs, 2)
+            tagged["total_items_sold"] = sim.total_items_sold
+
+            socketio.emit("sim_update", tagged)
+
+            # Detailed day summary
+            sales = result.get("sales", [])
+            total_rev = result.get("total_revenue", 0)
+            total_units = sum(s.get("qty", 0) for s in sales)
+            daily_profit = result.get("daily_profit", 0)
+            weather = result.get("weather", "").capitalize()
+            balance = result.get("new_balance", 0)
+
+            # Top selling product
+            top_product = ""
+            if sales:
+                best = max(sales, key=lambda s: s.get("qty", 0))
+                top_product = f" | Best: {best.get('product', '?')} x{best.get('qty', 0)}"
+
+            _emit_action(
+                f"day-{result.get('day', '?')}",
+                f"{weather} | {total_units} sold | +${total_rev:.2f} rev | profit ${daily_profit:.2f} | bal ${balance:.2f}{top_product}"
+            )
+
+            # Log notable events
+            events = result.get("events", [])
+            for ev in events:
+                _emit_action("event", ev, success="BANKRUPT" not in ev)
+
+            # Log deliveries
+            deliveries = result.get("deliveries", [])
+            for d in deliveries:
+                if d["status"] == "delivered":
+                    _emit_action("delivery", f"Received {d['qty']}x {d['product']} (Order #{d['order_id']})")
+                elif d["status"] == "failed":
+                    _emit_action("delivery-fail", f"Order #{d['order_id']} failed: {d.get('reason', 'unknown')}", success=False)
+
+        except Exception:
+            break
+
+        if result.get("bankrupt"):
+            _emit_action("bankrupt", f"Business went bankrupt on day {sim.day}. Balance: ${sim.balance:.2f}", success=False)
+            break
+
+        # Sleep between days
+        stop.wait(base_delay)
+
+    # Finished
+    autopilot["running"] = False
+    if sim:
+        score = sim.get_score()
+        _emit_action("complete", f"Simulation complete! Final balance: ${score['final_balance']:.2f} | Profit: ${score['total_profit']:.2f} | {score['total_items_sold']} items sold")
+
+        final = _tag_sim_state(sim.get_state())
+        final["autopilot"] = False
+        final["simulation_complete"] = sim.day >= sim.total_days
+        final["total_days"] = sim.total_days
+        final["total_profit"] = round(sim.total_revenue - sim.total_costs, 2)
+        final["total_items_sold"] = sim.total_items_sold
+        socketio.emit("sim_update", final)
+
 
 # ---------------------------------------------------------------------------
 # Default inventory
@@ -154,6 +422,36 @@ def race_page():
     return render_template("race.html")
 
 
+@app.route("/results")
+def results_page():
+    return render_template("results.html")
+
+
+@app.route("/api/race/results", methods=["GET"])
+def api_race_results():
+    """Return historical race results from race_results.json."""
+    results_path = os.path.join(os.path.dirname(__file__), "race_results.json")
+    if not os.path.exists(results_path):
+        return jsonify([])
+    try:
+        with open(results_path) as f:
+            data = json.load(f)
+        return jsonify(data)
+    except (json.JSONDecodeError, IOError):
+        return jsonify([])
+
+
+@app.route("/api/race/event", methods=["POST"])
+def api_race_event():
+    """Receive status/error events from the race runner and push to WebSocket."""
+    data = request.get_json(force=True) if request.is_json else {}
+    action = data.get("action", "race-event")
+    detail = data.get("detail", "")
+    success = data.get("success", True)
+    _emit_action(action, detail, success=success)
+    return jsonify({"ok": True})
+
+
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json(force=True) if request.is_json else {}
@@ -162,6 +460,106 @@ def api_register():
         return jsonify({"error": "Missing 'name' parameter."}), 400
     player_info["name"] = name
     return jsonify({"message": f"Registered as '{name}'", "player": name})
+
+
+# ---------------------------------------------------------------------------
+# Autopilot (fast-forward) API
+# ---------------------------------------------------------------------------
+@app.route("/api/sim/autopilot/start", methods=["POST"])
+def api_autopilot_start():
+    global sim
+    data = request.get_json(force=True) if request.is_json else {}
+    speed = data.get("speed", 1)
+    days = data.get("days", 90)
+    seed = data.get("seed", None)
+    name = data.get("name", "autopilot")
+
+    if speed not in (1, 2, 5, 10):
+        return jsonify({"error": "Speed must be 1, 2, 5, or 10."}), 400
+
+    # Stop any running autopilot
+    if autopilot["running"]:
+        autopilot["stop_event"].set()
+        if autopilot["thread"] and autopilot["thread"].is_alive():
+            autopilot["thread"].join(timeout=5)
+
+    # Register player
+    player_info["name"] = name
+
+    # Start fresh simulation if none exists or reset requested
+    if not sim or data.get("reset", True):
+        sim = VendingSimulation(seed=seed, total_days=days)
+        state = _tag_sim_state(sim.get_state())
+        socketio.emit("sim_update", state)
+
+    # Start autopilot thread
+    autopilot["speed"] = speed
+    autopilot["running"] = True
+    autopilot["stop_event"] = threading.Event()
+    t = threading.Thread(target=_autopilot_loop, daemon=True)
+    autopilot["thread"] = t
+    t.start()
+
+    return jsonify({
+        "message": f"Autopilot started at {speed}x speed for {days} days",
+        "speed": speed,
+        "days": days,
+        "player": name,
+    })
+
+
+@app.route("/api/sim/autopilot/stop", methods=["POST"])
+def api_autopilot_stop():
+    if not autopilot["running"]:
+        return jsonify({"message": "Autopilot is not running."})
+
+    autopilot["stop_event"].set()
+    if autopilot["thread"] and autopilot["thread"].is_alive():
+        autopilot["thread"].join(timeout=5)
+    autopilot["running"] = False
+
+    return jsonify({"message": "Autopilot stopped.", "day": sim.day if sim else 0})
+
+
+@app.route("/api/sim/autopilot/speed", methods=["POST"])
+def api_autopilot_speed():
+    data = request.get_json(force=True) if request.is_json else {}
+    speed = data.get("speed", 1)
+    if speed not in (1, 2, 5, 10):
+        return jsonify({"error": "Speed must be 1, 2, 5, or 10."}), 400
+
+    was_running = autopilot["running"]
+
+    # Stop current
+    if was_running:
+        autopilot["stop_event"].set()
+        if autopilot["thread"] and autopilot["thread"].is_alive():
+            autopilot["thread"].join(timeout=5)
+
+    # Restart with new speed (don't reset sim)
+    if was_running and sim and not sim.bankrupt and sim.day < sim.total_days:
+        autopilot["speed"] = speed
+        autopilot["running"] = True
+        autopilot["stop_event"] = threading.Event()
+        t = threading.Thread(target=_autopilot_loop, daemon=True)
+        autopilot["thread"] = t
+        t.start()
+        return jsonify({"message": f"Speed changed to {speed}x", "speed": speed})
+
+    autopilot["speed"] = speed
+    return jsonify({"message": f"Speed set to {speed}x (autopilot not running)", "speed": speed})
+
+
+@app.route("/api/sim/autopilot/status", methods=["GET"])
+def api_autopilot_status():
+    return jsonify({
+        "running": autopilot["running"],
+        "speed": autopilot["speed"],
+        "day": sim.day if sim else 0,
+        "total_days": sim.total_days if sim else 0,
+        "balance": round(sim.balance, 2) if sim else 0,
+        "bankrupt": sim.bankrupt if sim else False,
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -613,6 +1011,7 @@ def api_sim_start():
     sim = VendingSimulation(seed=seed, total_days=days)
     state = _tag_sim_state(sim.get_state())
     socketio.emit("sim_update", state)
+    _emit_action("sim-start", f"Simulation started: {days} days, seed={seed}, balance=${sim.balance:.2f}")
     return jsonify(state)
 
 
@@ -693,7 +1092,10 @@ def api_sim_order():
         return jsonify({"error": "Missing required fields: supplier_id, product_id, qty."}), 400
     result = sim.place_order(supplier_id, product_id, qty)
     if "error" in result:
+        _emit_action("order-fail", f"Order failed: {product_id} x{qty} from {supplier_id} — {result.get('error','')}", success=False)
         return jsonify(result), 400
+    cost = result.get("total_cost", 0)
+    _emit_action("order", f"Ordered {qty}x {product_id} from {supplier_id} (${cost:.2f})")
     socketio.emit("sim_update", _tag_sim_state(sim.get_state()))
     return jsonify(result)
 
@@ -721,9 +1123,11 @@ def api_sim_set_price():
     price = data.get("price")
     if not product_id or price is None:
         return jsonify({"error": "Missing required fields: product_id, price."}), 400
+    old_price = sim._prices.get(product_id, 0)
     result = sim.set_price(product_id, price)
     if "error" in result:
         return jsonify(result), 400
+    _emit_action("pricing", f"Set {product_id}: ${old_price:.2f} → ${price:.2f}")
     socketio.emit("sim_update", _tag_sim_state(sim.get_state()))
     return jsonify(result)
 
@@ -739,7 +1143,10 @@ def api_sim_restock():
         return jsonify({"error": "Missing required fields: product_id, qty."}), 400
     result = sim.restock(product_id, qty)
     if "error" in result:
+        _emit_action("restock-fail", f"Restock failed: {product_id} x{qty} — {result.get('error','')}", success=False)
         return jsonify(result), 400
+    moved = result.get("moved", qty)
+    _emit_action("restock", f"Restocked {moved}x {product_id} to machine")
     socketio.emit("sim_update", _tag_sim_state(sim.get_state()))
     return jsonify(result)
 
@@ -782,7 +1189,41 @@ def api_sim_advance_day():
     if not _require_sim():
         return jsonify({"error": "Simulation not started."}), 400
     result = sim.advance_day()
-    socketio.emit("sim_update", _tag_sim_state(result))
+    # Build rich state for the UI (same as autopilot does)
+    tagged = _tag_sim_state(result)
+    full_state = sim.get_state()
+    financials = sim.get_financials()
+    tagged["machine_inventory"] = full_state.get("machine_inventory", {})
+    tagged["storage_inventory"] = full_state.get("storage_inventory", {})
+    tagged["pending_orders"] = full_state.get("pending_orders", [])
+    tagged["daily_history"] = financials.get("daily_history", [])
+    tagged["today_sales"] = result.get("sales", [])
+    tagged["products"] = {pid: {"name": p["name"], "category": p["category"]} for pid, p in sim.products.items()}
+    tagged["storage_capacity"] = sim.storage_capacity
+    tagged["total_days"] = sim.total_days
+    tagged["total_profit"] = round(sim.total_revenue - sim.total_costs, 2)
+    tagged["total_items_sold"] = sim.total_items_sold
+    socketio.emit("sim_update", tagged)
+    # Emit day summary action
+    sales = result.get("sales", [])
+    total_units = sum(s.get("qty", 0) for s in sales)
+    day_rev = result.get("total_revenue", 0)
+    day_profit = result.get("daily_profit", 0)
+    weather = result.get("weather", "").capitalize()
+    balance = result.get("new_balance", 0)
+    top = ""
+    if sales:
+        best = max(sales, key=lambda s: s.get("qty", 0))
+        top = f" | Best: {best.get('product','?')} x{best.get('qty',0)}"
+    _emit_action(f"day-{result.get('day','?')}", f"{weather} | {total_units} sold | +${day_rev:.2f} rev | profit ${day_profit:.2f} | bal ${balance:.2f}{top}")
+    # Emit delivery/event info
+    for d in result.get("deliveries", []):
+        if d["status"] == "delivered":
+            _emit_action("delivery", f"Received {d['qty']}x {d['product']} (Order #{d['order_id']})")
+        elif d["status"] == "failed":
+            _emit_action("delivery-fail", f"Order #{d['order_id']} failed: {d.get('reason','unknown')}", success=False)
+    for ev in result.get("events", []):
+        _emit_action("event", ev, success="BANKRUPT" not in ev)
     return jsonify(result)
 
 

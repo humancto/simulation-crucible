@@ -110,14 +110,39 @@ After the race, results are saved to `race_results.json` with full scoring detai
 
 ### Race Options
 
-| Flag             | Default             | Description                       |
-| ---------------- | ------------------- | --------------------------------- |
-| `--agents`       | _required_          | Comma-separated agent names       |
-| `--seed`         | random              | Random seed (same for all agents) |
-| `--days`         | 90                  | Simulation days                   |
-| `--base-port`    | 5050                | Starting port number              |
-| `--max-turns`    | 800                 | Max agent turns per agent         |
-| `--results-file` | `race_results.json` | Output file for results           |
+| Flag             | Default             | Description                                              |
+| ---------------- | ------------------- | -------------------------------------------------------- |
+| `--agents`       | _required_          | Comma-separated agent names                              |
+| `--seed`         | random              | Random seed (same for all agents)                        |
+| `--days`         | 90                  | Simulation days                                          |
+| `--base-port`    | 5050                | Starting port number                                     |
+| `--max-turns`    | 800                 | Max agent turns per agent                                |
+| `--models`       | auto-detect         | Per-agent model override (e.g. `opus,,gemini-2.5-flash`) |
+| `--results-file` | `race_results.json` | Output file for results                                  |
+
+### Model Auto-Detection
+
+The race runner automatically detects each agent's configured model:
+
+- **Claude**: Uses CLI default (no model config file)
+- **Codex**: Reads `model` from `~/.codex/config.toml`
+- **Gemini**: Reads model from `~/.gemini/settings.json`
+
+Override per-agent with `--models`: `--models opus,gpt-5.2-codex,gemini-2.5-flash`. Use empty string to keep auto-detected model (e.g. `--models ,,gemini-2.5-flash`).
+
+### Error Monitoring
+
+The race runner monitors each agent's log in real-time and surfaces errors (rate limits, model access issues, auth failures) to the dashboard via WebSocket. Errors are also captured in the final results JSON.
+
+### Results Dashboard
+
+After a race completes, view results at `http://localhost:5050/results`:
+
+- Podium display with top 3 finishers
+- Race history table with all past races
+- Expandable rows with per-agent details
+- Agent type color coding (Claude/Codex/Gemini)
+- Error summaries and timing data
 
 ---
 
@@ -343,7 +368,8 @@ Race Mode:
         +-- Server :5051  <-->  Agent 2 (codex)
         +-- Server :5052  <-->  Agent 3 (gemini)
         |
-    Dashboard: /race?ports=5050,5051,5052&names=claude,codex,gemini
+    Live:    /race?ports=5050,5051,5052&names=claude,codex,gemini
+    Results: /results  (post-race leaderboard & history)
 ```
 
 - **No dependencies for the CLI** — `vm_cli.py` uses only Python stdlib
@@ -353,22 +379,24 @@ Race Mode:
 
 ## Files
 
-| File                   | Purpose                                                |
-| ---------------------- | ------------------------------------------------------ |
-| `simulation.py`        | Business simulation engine                             |
-| `server.py`            | Flask server, REST API, WebSocket, player registration |
-| `vm_cli.py`            | CLI tool for AI agents (stdlib only)                   |
-| `run_benchmark.py`     | Single-agent benchmark runner with leaderboard         |
-| `run_race.py`          | Multi-agent race runner with live dashboard            |
-| `config.json`          | Simulation parameters                                  |
-| `scenarios.json`       | 10 practice mode scenarios                             |
-| `AGENT.md`             | Instructions to feed to AI agents                      |
-| `static/app.js`        | Browser UI logic                                       |
-| `static/race.js`       | Race dashboard logic                                   |
-| `static/style.css`     | Main UI theme                                          |
-| `static/race.css`      | Race dashboard styling                                 |
-| `templates/index.html` | Main UI page                                           |
-| `templates/race.html`  | Race dashboard page                                    |
+| File                     | Purpose                                                |
+| ------------------------ | ------------------------------------------------------ |
+| `simulation.py`          | Business simulation engine                             |
+| `server.py`              | Flask server, REST API, WebSocket, player registration |
+| `vm_cli.py`              | CLI tool for AI agents (stdlib only)                   |
+| `run_benchmark.py`       | Single-agent benchmark runner with leaderboard         |
+| `run_race.py`            | Multi-agent race runner with live dashboard            |
+| `config.json`            | Simulation parameters                                  |
+| `scenarios.json`         | 10 practice mode scenarios                             |
+| `AGENT.md`               | Instructions to feed to AI agents                      |
+| `static/app.js`          | Browser UI logic                                       |
+| `static/race.js`         | Race dashboard logic                                   |
+| `static/results.js`      | Results dashboard logic                                |
+| `static/style.css`       | Main UI theme                                          |
+| `static/race.css`        | Race dashboard styling                                 |
+| `templates/index.html`   | Main UI page                                           |
+| `templates/race.html`    | Race dashboard page                                    |
+| `templates/results.html` | Race results dashboard page                            |
 
 ## License
 

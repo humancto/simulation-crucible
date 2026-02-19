@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Results — Vending Machine AI Benchmark</title>
+    <style>
+        :root {
+            --bg: #0a0e17;
+            --surface: #12121a;
+            --surface-2: #1a1a25;
+            --surface-3: #222233;
+            --border: #2a2a3a;
+            --text: #e0e0e8;
+            --text-dim: #8888a0;
+            --accent: #00ffc8;
+            --accent-glow: rgba(0, 255, 200, 0.3);
+            --green: #00e676;
+            --red: #ff5252;
+            --orange: #ffab40;
+            --yellow: #ffd740;
+            --purple: #b388ff;
+            --cyan: #00e5ff;
+            --codex-green: #00e676;
+            --gemini-purple: #b388ff;
+            --claude-cyan: #00e5ff;
+            --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+            --font-ui: "Inter", -apple-system, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-ui);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* === Top Bar === */
+        #top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 28px;
+            background: var(--surface);
+            border-bottom: 2px solid var(--border);
+        }
+
+        #top-bar h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        #top-bar .accent {
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 6px;
+        }
+
+        .nav-link {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--text-dim);
+            padding: 6px 14px;
+            border-radius: 6px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-link:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+            background: rgba(0, 255, 200, 0.06);
+        }
+
+        .nav-link.active {
+            color: var(--accent);
+            border-color: var(--accent);
+            background: rgba(0, 255, 200, 0.1);
+        }
+
+        /* === Main Container === */
+        .results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* === Loading / Empty States === */
+        .state-message {
+            text-align: center;
+            padding: 60px 20px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .state-message.error {
+            color: var(--red);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* === Latest Race Hero Section === */
+        .latest-race {
+            background: var(--surface);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 28px;
+            box-shadow: 0 0 30px rgba(0, 255, 200, 0.08);
+        }
+
+        .latest-race-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .latest-race-header h2 {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        .latest-race-meta {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            display: flex;
+            gap: 16px;
+        }
+
+        .meta-item {
+            padding: 3px 10px;
+            border-radius: 4px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+        }
+
+        .latest-podium {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .podium-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .podium-card.winner {
+            border-color: var(--yellow);
+            background: rgba(255, 215, 64, 0.04);
+            box-shadow: 0 0 16px rgba(255, 215, 64, 0.1);
+        }
+
+        .podium-rank {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .podium-name {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .podium-balance {
+            font-family: var(--font-mono);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--green);
+            margin-bottom: 4px;
+        }
+
+        .podium-balance.negative {
+            color: var(--red);
+        }
+
+        .podium-stats {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .podium-error {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--red);
+            margin-top: 6px;
+        }
+
+        /* === Race History Table === */
+        .history-section h2 {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 14px;
+        }
+
+        .race-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 4px;
+        }
+
+        .race-table th {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            text-align: left;
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .race-row {
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .race-row td {
+            background: var(--surface);
+            padding: 12px 14px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .race-row td:first-child {
+            border-left: 1px solid var(--border);
+            border-radius: 8px 0 0 8px;
+        }
+
+        .race-row td:last-child {
+            border-right: 1px solid var(--border);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .race-row:hover td {
+            background: var(--surface-2);
+            border-color: var(--accent);
+        }
+
+        .race-row.expanded td {
+            border-color: var(--accent);
+            background: var(--surface-2);
+        }
+
+        .expand-icon {
+            display: inline-block;
+            transition: transform 0.2s;
+            margin-right: 8px;
+            color: var(--text-dim);
+            font-size: 10px;
+        }
+
+        .race-row.expanded .expand-icon {
+            transform: rotate(90deg);
+        }
+
+        .winner-name {
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .agent-pills {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .agent-pill {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .agent-pill.claude {
+            color: var(--claude-cyan);
+            background: rgba(0, 229, 255, 0.1);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+        }
+
+        .agent-pill.codex {
+            color: var(--codex-green);
+            background: rgba(0, 230, 118, 0.1);
+            border: 1px solid rgba(0, 230, 118, 0.25);
+        }
+
+        .agent-pill.gemini {
+            color: var(--gemini-purple);
+            background: rgba(179, 136, 255, 0.1);
+            border: 1px solid rgba(179, 136, 255, 0.25);
+        }
+
+        /* === Expanded Detail Row === */
+        .detail-row td {
+            padding: 0;
+            background: transparent;
+            border: none;
+        }
+
+        .detail-content {
+            background: var(--surface);
+            border: 1px solid var(--accent);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            margin: -4px 0 8px 0;
+            padding: 16px;
+            animation: slide-down 0.2s ease-out;
+        }
+
+        @keyframes slide-down {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 600px; }
+        }
+
+        .leaderboard-grid {
+            display: grid;
+            gap: 8px;
+        }
+
+        .lb-entry {
+            display: grid;
+            grid-template-columns: 40px 1fr 100px 100px 80px 80px;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            transition: all 0.15s;
+        }
+
+        .lb-entry:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .lb-entry.rank-1 {
+            border-color: var(--yellow);
+            background: rgba(255, 215, 64, 0.04);
+        }
+
+        .lb-entry.rank-2 {
+            border-color: rgba(192, 192, 192, 0.3);
+        }
+
+        .lb-entry.rank-3 {
+            border-color: rgba(205, 127, 50, 0.3);
+        }
+
+        .lb-entry.has-error {
+            border-color: var(--red);
+            opacity: 0.7;
+        }
+
+        .lb-rank {
+            font-size: 16px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .lb-agent-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .lb-agent-name {
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .lb-agent-type {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .lb-balance {
+            font-weight: 700;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .lb-balance.positive { color: var(--green); }
+        .lb-balance.negative { color: var(--red); }
+
+        .lb-profit {
+            font-size: 11px;
+            text-align: right;
+            color: var(--text-dim);
+        }
+
+        .lb-items {
+            font-size: 11px;
+            text-align: right;
+            color: var(--text-dim);
+        }
+
+        .lb-duration {
+            font-size: 11px;
+            text-align: right;
+            color: var(--text-dim);
+        }
+
+        .lb-error-msg {
+            grid-column: 2 / -1;
+            font-size: 10px;
+            color: var(--red);
+            padding-top: 4px;
+            border-top: 1px solid rgba(255, 82, 82, 0.15);
+            margin-top: 4px;
+        }
+
+        .lb-header {
+            display: grid;
+            grid-template-columns: 40px 1fr 100px 100px 80px 80px;
+            gap: 12px;
+            padding: 6px 14px;
+            font-family: var(--font-mono);
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .lb-header span:nth-child(3),
+        .lb-header span:nth-child(4),
+        .lb-header span:nth-child(5),
+        .lb-header span:nth-child(6) {
+            text-align: right;
+        }
+
+        /* === Color by agent type === */
+        .agent-color-claude { color: var(--claude-cyan); }
+        .agent-color-codex { color: var(--codex-green); }
+        .agent-color-gemini { color: var(--gemini-purple); }
+
+        /* === Responsive === */
+        @media (max-width: 800px) {
+            .results-container { padding: 12px; }
+
+            .latest-podium {
+                grid-template-columns: 1fr;
+            }
+
+            .lb-entry {
+                grid-template-columns: 30px 1fr 80px;
+                font-size: 11px;
+            }
+
+            .lb-entry .lb-profit,
+            .lb-entry .lb-items,
+            .lb-entry .lb-duration {
+                display: none;
+            }
+
+            .lb-header {
+                grid-template-columns: 30px 1fr 80px;
+            }
+
+            .lb-header span:nth-child(n+4) {
+                display: none;
+            }
+
+            .race-table th:nth-child(3),
+            .race-row td:nth-child(3),
+            .race-table th:nth-child(4),
+            .race-row td:nth-child(4) {
+                display: none;
+            }
+
+            #top-bar {
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 10px 16px;
+            }
+
+            .nav-links {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* === Scrollbar === */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+    </style>
+</head>
+<body>
+    <header id="top-bar">
+        <div class="top-left">
+            <h1>VENDING MACHINE <span class="accent">RACE RESULTS</span></h1>
+        </div>
+        <nav class="nav-links">
+            <a href="/" class="nav-link">Benchmark</a>
+            <a href="/race" class="nav-link">Live Race</a>
+            <a href="/results" class="nav-link active">Results</a>
+        </nav>
+    </header>
+
+    <div class="results-container" id="results-container">
+        <div class="state-message" id="loading-state">
+            <div class="loading-spinner"></div>
+            <div>Loading race results...</div>
+        </div>
+    </div>
+
+    <script src="/static/results.js"></script>
+</body>
+</html>

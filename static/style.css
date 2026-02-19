@@ -55,6 +55,34 @@ body {
   color: var(--accent);
 }
 
+/* Top Nav Links */
+.top-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.nav-link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  transition:
+    color 0.2s,
+    background 0.2s;
+}
+
+.nav-link:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.nav-link.active {
+  color: var(--accent);
+  background: rgba(0, 229, 255, 0.08);
+}
+
 /* Mode Toggle Tabs */
 .mode-tabs {
   display: flex;
@@ -975,4 +1003,122 @@ main {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-dim);
+}
+
+/* === Autopilot (Fast-Forward) Controls === */
+.autopilot-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.autopilot-left {
+  display: flex;
+  gap: 6px;
+}
+
+.autopilot-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.autopilot-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.autopilot-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.autopilot-btn.running {
+  background: rgba(0, 230, 118, 0.1);
+  border-color: var(--green);
+  color: var(--green);
+  animation: pulse-play 1.5s infinite;
+}
+
+@keyframes pulse-play {
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(0, 230, 118, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.4);
+  }
+}
+
+.autopilot-speeds {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+}
+
+.speed-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.speed-btn:hover {
+  color: var(--text);
+  border-color: var(--text-dim);
+}
+
+.speed-btn.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(0, 229, 255, 0.08);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+.autopilot-status {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.autopilot-status.running {
+  color: var(--green);
+  background: rgba(0, 230, 118, 0.08);
+  border-color: rgba(0, 230, 118, 0.3);
+}
+
+.autopilot-status.finished {
+  color: var(--yellow);
+  background: rgba(255, 215, 64, 0.08);
+  border-color: rgba(255, 215, 64, 0.3);
 }
