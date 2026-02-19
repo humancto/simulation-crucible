@@ -1,6 +1,14 @@
 // Vending Machine AI Benchmark — Live UI
 // All DOM manipulation uses safe methods (createElement, textContent, replaceChildren).
 (function () {
+  // Time info banner dismiss
+  var closeBtn = document.getElementById("time-info-close");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", function () {
+      document.getElementById("time-info-banner").classList.add("hidden");
+    });
+  }
+
   var socket = io();
   var SLOT_ORDER = [
     "A1",

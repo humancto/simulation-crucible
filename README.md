@@ -44,6 +44,28 @@ A fully local business simulation where AI agents manage a vending machine over 
 
 ---
 
+## Understanding Time in This Benchmark
+
+There are three distinct "time" concepts. This is important to understand before running anything.
+
+| Concept                  | What It Means                                                                                                                                     | Real Wall-Clock Time                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **Simulated Days**       | Game turns. Each "day" is one API call (`sim advance-day`) that computes sales, deliveries, and weather instantly.                                | Milliseconds per day                                           |
+| **Agent Execution Time** | How long a real AI agent takes to play all simulated days. Each turn the LLM thinks, generates a command, runs it, reads the result, and repeats. | **~15-20 min for 10 days, ~1.5-3 hours for 90 days** per agent |
+| **Autopilot Time**       | The built-in bot runs a hardcoded strategy with no LLM. It's a scripted baseline, not an AI.                                                      | ~2 min for 90 days at 10x speed                                |
+
+**Key takeaway:** When the benchmark says "90 days," it means 90 _simulated_ business days. A real AI agent will take **1.5-3 hours of wall-clock time** to play through all 90 days because each day involves multiple LLM reasoning steps (check status, decide orders, set prices, restock, advance). The simulation itself is instant — the time is spent waiting for the AI to think.
+
+**Quick reference:**
+
+- `--days 10` = ~15-20 min per agent (good for testing)
+- `--days 30` = ~30-60 min per agent (medium benchmark)
+- `--days 90` = ~1.5-3 hours per agent (full benchmark)
+
+These estimates vary by model speed, rate limits, and how many commands the agent runs per day.
+
+---
+
 ## Quick Start
 
 ```bash

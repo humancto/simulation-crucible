@@ -31,6 +31,29 @@
             </div>
         </header>
 
+        <!-- Time info banner -->
+        <div id="time-info-banner" class="time-info-banner">
+            <div class="time-info-content">
+                <strong>Human Time vs LLM Time:</strong>
+                <span class="time-info-item">
+                    <span class="time-label">1 Sim Day</span> = instant (milliseconds)
+                </span>
+                <span class="time-info-sep">|</span>
+                <span class="time-info-item">
+                    <span class="time-label">10 Days via AI Agent</span> = ~15-20 min real time
+                </span>
+                <span class="time-info-sep">|</span>
+                <span class="time-info-item">
+                    <span class="time-label">90 Days via AI Agent</span> = ~1.5-3 hrs real time
+                </span>
+                <span class="time-info-sep">|</span>
+                <span class="time-info-item">
+                    <span class="time-label">Autopilot (not AI)</span> = ~2 min / 90 days
+                </span>
+            </div>
+            <button class="time-info-close" id="time-info-close" title="Dismiss">&times;</button>
+        </div>
+
         <main>
             <!-- Practice Mode: Left — Vending Machine -->
             <section id="machine" class="mode-practice">

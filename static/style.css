@@ -83,6 +83,65 @@ body {
   background: rgba(0, 229, 255, 0.08);
 }
 
+/* Time Info Banner */
+.time-info-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 24px;
+  background: rgba(0, 229, 255, 0.06);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  gap: 12px;
+}
+
+.time-info-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.time-info-content strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.time-info-item {
+  white-space: nowrap;
+}
+
+.time-label {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.time-info-sep {
+  color: var(--border);
+}
+
+.time-info-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.time-info-close:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.time-info-banner.hidden {
+  display: none;
+}
+
 /* Mode Toggle Tabs */
 .mode-tabs {
   display: flex;
