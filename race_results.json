@@ -424,5 +424,395 @@
         "error": "Went bankrupt"
       }
     ]
+  },
+  {
+    "timestamp": "2026-02-19 23:12:31",
+    "seed": 99,
+    "days": 10,
+    "agents": [
+      "claude",
+      "codex",
+      "gemini"
+    ],
+    "agent_types": [
+      "claude",
+      "codex",
+      "gemini"
+    ],
+    "results": [
+      {
+        "avg_daily_revenue": 1.7976924000000004e+307,
+        "bankrupt": false,
+        "bankrupt_day": null,
+        "best_day": {
+          "day": 2,
+          "profit": 1.997436e+307
+        },
+        "final_balance": 1.7976924000000003e+308,
+        "starting_balance": 500.0,
+        "suppliers_used": [
+          "quickstock"
+        ],
+        "total_costs": 1041.2,
+        "total_days": 10,
+        "total_items_sold": 720,
+        "total_profit": 1.7976924000000003e+308,
+        "total_revenue": 1.7976924000000003e+308,
+        "unique_products_sold": 1,
+        "worst_day": {
+          "day": 1,
+          "profit": -2.0
+        },
+        "agent": "codex",
+        "agent_type": "codex",
+        "port": 5051,
+        "duration": 756.7966117858887,
+        "error": ""
+      },
+      {
+        "agent": "claude",
+        "agent_type": "claude",
+        "port": 5050,
+        "final_balance": 0,
+        "total_profit": 0,
+        "total_items_sold": 0,
+        "total_days": 0,
+        "duration": 434.4350039958954,
+        "error": "Went bankrupt"
+      },
+      {
+        "agent": "gemini",
+        "agent_type": "gemini",
+        "port": 5052,
+        "final_balance": 0,
+        "total_profit": 0,
+        "total_items_sold": 0,
+        "total_days": 0,
+        "duration": 677.8018989562988,
+        "error": ""
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-19 23:30:40",
+    "seed": 77,
+    "days": 10,
+    "agents": [
+      "claude",
+      "codex",
+      "gemini"
+    ],
+    "agent_types": [
+      "claude",
+      "codex",
+      "gemini"
+    ],
+    "results": [
+      {
+        "avg_daily_revenue": 1.7976931344e+307,
+        "bankrupt": false,
+        "bankrupt_day": null,
+        "best_day": {
+          "day": 2,
+          "profit": 1.997436816e+307
+        },
+        "final_balance": 1.7976931344e+308,
+        "starting_balance": 500.0,
+        "suppliers_used": [
+          "quickstock"
+        ],
+        "total_costs": 1250.0,
+        "total_days": 10,
+        "total_items_sold": 720,
+        "total_profit": 1.7976931344e+308,
+        "total_revenue": 1.7976931344e+308,
+        "unique_products_sold": 1,
+        "worst_day": {
+          "day": 1,
+          "profit": -2.0
+        },
+        "agent": "codex",
+        "agent_type": "codex",
+        "port": 5051,
+        "duration": 612.1594676971436,
+        "error": ""
+      },
+      {
+        "avg_daily_revenue": 38.98,
+        "bankrupt": false,
+        "bankrupt_day": null,
+        "best_day": {
+          "day": 7,
+          "profit": 70.5
+        },
+        "final_balance": 486.35,
+        "starting_balance": 500.0,
+        "suppliers_used": [
+          "freshco"
+        ],
+        "total_costs": 403.4,
+        "total_days": 10,
+        "total_items_sold": 170,
+        "total_profit": -13.65,
+        "total_revenue": 389.75,
+        "unique_products_sold": 8,
+        "worst_day": {
+          "day": 1,
+          "profit": -2.0
+        },
+        "agent": "gemini",
+        "agent_type": "gemini",
+        "port": 5052,
+        "duration": 548.2997131347656,
+        "error": ""
+      },
+      {
+        "avg_daily_revenue": 46.83,
+        "bankrupt": false,
+        "bankrupt_day": null,
+        "best_day": {
+          "day": 3,
+          "profit": 81.5
+        },
+        "final_balance": 447.39,
+        "starting_balance": 500.0,
+        "suppliers_used": [
+          "quickstock",
+          "freshco"
+        ],
+        "total_costs": 520.86,
+        "total_days": 10,
+        "total_items_sold": 236,
+        "total_profit": -52.61,
+        "total_revenue": 468.25,
+        "unique_products_sold": 8,
+        "worst_day": {
+          "day": 1,
+          "profit": -2.0
+        },
+        "agent": "claude",
+        "agent_type": "claude",
+        "port": 5050,
+        "duration": 385.43876099586487,
+        "error": ""
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-20 00:20:48",
+    "seed": 55,
+    "days": 10,
+    "agents": [
+      "claude",
+      "codex",
+      "gemini"
+    ],
+    "agent_types": [
+      "claude",
+      "codex",
+      "gemini"
+    ],
+    "results": [
+      {
+        "avg_daily_revenue": 39.01,
+        "bankrupt": false,
+        "bankrupt_day": null,
+        "best_day": {
+          "day": 7,
+          "profit": 72.97999999999999
+        },
+        "final_balance": 742.4,
+        "starting_balance": 500.0,
+        "suppliers_used": [
+          "quickstock"
+        ],
+        "total_costs": 147.69,
+        "total_days": 10,
+        "total_items_sold": 75,
+        "total_profit": 242.4,
+        "total_revenue": 390.09,
+        "unique_products_sold": 8,
+        "worst_day": {
+          "day": 1,
+          "profit": -2.0
+        },
+        "agent": "codex",
+        "agent_type": "codex",
+        "port": 5051,
+        "duration": 1128.7650790214539,
+        "error": ""
+      },
+      {
+        "avg_daily_revenue": 45.7,
+        "bankrupt": false,
+        "bankrupt_day": null,
+        "best_day": {
+          "day": 7,
+          "profit": 101.5
+        },
+        "final_balance": 397.3,
+        "starting_balance": 500.0,
+        "suppliers_used": [
+          "freshco",
+          "bargainbulk",
+          "quickstock"
+        ],
+        "total_costs": 559.7,
+        "total_days": 10,
+        "total_items_sold": 230,
+        "total_profit": -102.7,
+        "total_revenue": 457.0,
+        "unique_products_sold": 8,
+        "worst_day": {
+          "day": 1,
+          "profit": -2.0
+        },
+        "agent": "gemini",
+        "agent_type": "gemini",
+        "port": 5052,
+        "duration": 481.1769630908966,
+        "error": ""
+      },
+      {
+        "avg_daily_revenue": 41.45,
+        "bankrupt": false,
+        "bankrupt_day": null,
+        "best_day": {
+          "day": 7,
+          "profit": 75.25
+        },
+        "final_balance": 345.4,
+        "starting_balance": 500.0,
+        "suppliers_used": [
+          "freshco",
+          "primevend",
+          "quickstock"
+        ],
+        "total_costs": 569.1,
+        "total_days": 10,
+        "total_items_sold": 210,
+        "total_profit": -154.6,
+        "total_revenue": 414.5,
+        "unique_products_sold": 8,
+        "worst_day": {
+          "day": 1,
+          "profit": -2.0
+        },
+        "agent": "claude",
+        "agent_type": "claude",
+        "port": 5050,
+        "duration": 410.611074924469,
+        "error": ""
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-02-20 00:49:12",
+    "seed": 33,
+    "days": 10,
+    "agents": [
+      "claude",
+      "codex",
+      "gemini"
+    ],
+    "agent_types": [
+      "claude",
+      "codex",
+      "gemini"
+    ],
+    "results": [
+      {
+        "avg_daily_revenue": 40.59,
+        "bankrupt": false,
+        "bankrupt_day": null,
+        "best_day": {
+          "day": 7,
+          "profit": 74.35
+        },
+        "final_balance": 469.17,
+        "starting_balance": 500.0,
+        "suppliers_used": [
+          "quickstock",
+          "bargainbulk",
+          "freshco"
+        ],
+        "total_costs": 436.77,
+        "total_days": 10,
+        "total_items_sold": 142,
+        "total_profit": -30.83,
+        "total_revenue": 405.95,
+        "unique_products_sold": 8,
+        "worst_day": {
+          "day": 1,
+          "profit": -2.0
+        },
+        "agent": "codex",
+        "agent_type": "codex",
+        "port": 5051,
+        "duration": 497.0855059623718,
+        "error": ""
+      },
+      {
+        "avg_daily_revenue": 38.48,
+        "bankrupt": false,
+        "bankrupt_day": null,
+        "best_day": {
+          "day": 7,
+          "profit": 69.25
+        },
+        "final_balance": 353.3,
+        "starting_balance": 500.0,
+        "suppliers_used": [
+          "quickstock",
+          "freshco"
+        ],
+        "total_costs": 570.0,
+        "total_days": 11,
+        "total_items_sold": 197,
+        "total_profit": -146.7,
+        "total_revenue": 423.3,
+        "unique_products_sold": 8,
+        "worst_day": {
+          "day": 1,
+          "profit": -2.0
+        },
+        "agent": "gemini",
+        "agent_type": "gemini",
+        "port": 5052,
+        "duration": 389.4456150531769,
+        "error": "Went bankrupt"
+      },
+      {
+        "avg_daily_revenue": 44.27,
+        "bankrupt": false,
+        "bankrupt_day": null,
+        "best_day": {
+          "day": 7,
+          "profit": 79.3
+        },
+        "final_balance": 343.2,
+        "starting_balance": 500.0,
+        "suppliers_used": [
+          "quickstock",
+          "freshco",
+          "primevend"
+        ],
+        "total_costs": 599.5,
+        "total_days": 10,
+        "total_items_sold": 215,
+        "total_profit": -156.8,
+        "total_revenue": 442.7,
+        "unique_products_sold": 8,
+        "worst_day": {
+          "day": 1,
+          "profit": -2.0
+        },
+        "agent": "claude",
+        "agent_type": "claude",
+        "port": 5050,
+        "duration": 510.1564099788666,
+        "error": ""
+      }
+    ]
   }
 ]

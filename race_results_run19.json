@@ -1,0 +1,79 @@
+[
+  {
+    "timestamp": "2026-02-20 11:57:11",
+    "seed": 50,
+    "days": 10,
+    "agents": [
+      "claude",
+      "codex"
+    ],
+    "agent_types": [
+      "claude",
+      "codex"
+    ],
+    "results": [
+      {
+        "avg_daily_revenue": 43.93,
+        "bankrupt": false,
+        "bankrupt_day": null,
+        "best_day": {
+          "day": 6,
+          "profit": 57.9
+        },
+        "final_balance": 504.75,
+        "starting_balance": 500.0,
+        "suppliers_used": [
+          "quickstock",
+          "freshco",
+          "cheapgoods"
+        ],
+        "total_costs": 434.54,
+        "total_days": 10,
+        "total_items_sold": 186,
+        "total_profit": 4.76,
+        "total_revenue": 439.3,
+        "unique_products_sold": 8,
+        "worst_day": {
+          "day": 1,
+          "profit": -2.0
+        },
+        "agent": "codex",
+        "agent_type": "codex",
+        "port": 5051,
+        "duration": 560.9197900295258,
+        "error": ""
+      },
+      {
+        "avg_daily_revenue": 46.97,
+        "bankrupt": false,
+        "bankrupt_day": null,
+        "best_day": {
+          "day": 4,
+          "profit": 67.5
+        },
+        "final_balance": 372.05,
+        "starting_balance": 500.0,
+        "suppliers_used": [
+          "primevend",
+          "freshco",
+          "quickstock"
+        ],
+        "total_costs": 550.7,
+        "total_days": 9,
+        "total_items_sold": 199,
+        "total_profit": -127.95,
+        "total_revenue": 422.75,
+        "unique_products_sold": 8,
+        "worst_day": {
+          "day": 1,
+          "profit": -2.0
+        },
+        "agent": "claude",
+        "agent_type": "claude",
+        "port": 5050,
+        "duration": 509.4603102207184,
+        "error": "Went bankrupt"
+      }
+    ]
+  }
+]
