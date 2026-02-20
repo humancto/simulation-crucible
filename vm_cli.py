@@ -604,6 +604,82 @@ def cmd_sim_reset(args):
     print(result.get("message", "Simulation reset."))
 
 
+# ---------------------------------------------------------------------------
+# V2 Simulation commands
+# ---------------------------------------------------------------------------
+
+def cmd_sim_invest(args):
+    """Make an investment."""
+    result, code = _post("/api/sim/invest", {"type": args.type})
+    if code >= 400:
+        _sim_error(result)
+    if "error" in result:
+        _sim_error(result)
+    print(f"Invested in {result.get('invested', args.type)}!")
+    print(f"  Cost: ${result.get('cost', 0):.2f}")
+    print(f"  Balance: ${result.get('new_balance', 0):.2f}")
+    for key in ("new_machine_capacity", "demand_boost", "new_daily_rent"):
+        if key in result:
+            label = key.replace("_", " ").title()
+            print(f"  {label}: {result[key]}")
+
+
+def cmd_sim_worker_hours(args):
+    """Set worker hours."""
+    result, code = _post("/api/sim/worker-hours", {"mode": args.mode})
+    if code >= 400:
+        _sim_error(result)
+    if "error" in result:
+        _sim_error(result)
+    print(f"Worker hours: {result.get('old_mode', '?')} -> {result.get('new_mode', args.mode)}")
+    print(f"  Wellbeing: {result.get('worker_wellbeing', '?')}")
+    print(f"  Consecutive overtime days: {result.get('consecutive_overtime_days', 0)}")
+
+
+def cmd_sim_worker_status(args):
+    """Check worker status."""
+    result = _get("/api/sim/worker-status")
+    if "error" in result:
+        _sim_error(result)
+    print(f"=== Worker Status ===")
+    print(f"  Status: {result.get('status', '?')}")
+    print(f"  Mode: {result.get('mode', '?')}")
+    print(f"  Wellbeing: {result.get('wellbeing', '?')}/100")
+    print(f"  Consecutive overtime: {result.get('consecutive_overtime_days', 0)} days")
+    if result.get("sick_today"):
+        print(f"  ** Worker is sick today -- no restocking available **")
+
+
+def cmd_sim_respond_bribe(args):
+    """Respond to a bribery offer."""
+    result, code = _post("/api/sim/respond-bribe", {"choice": args.choice})
+    if code >= 400:
+        _sim_error(result)
+    if "error" in result:
+        _sim_error(result)
+    print(f"Bribe {result.get('result', args.choice)}: {result.get('message', '')}")
+
+
+def cmd_sim_investments(args):
+    """View current investments."""
+    result = _get("/api/sim/investments")
+    if "error" in result:
+        _sim_error(result)
+    active = result.get("active_investments", [])
+    available = result.get("available", [])
+    details = result.get("details", {})
+    print("=== Investments ===")
+    if active:
+        print(f"Active: {', '.join(active)}")
+    else:
+        print("No active investments.")
+    if available:
+        print(f"\nAvailable:")
+        for t in available:
+            d = details.get(t, {})
+            print(f"  {t:<20} Cost: ${d.get('cost', 0)}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Vending Machine AI Benchmark CLI",
@@ -717,6 +793,20 @@ Simulation:
     sim_sub.add_parser("score", help="Get final simulation score")
     sim_sub.add_parser("reset", help="Reset simulation")
 
+    # V2 commands
+    p_sim_invest = sim_sub.add_parser("invest", help="Make an investment")
+    p_sim_invest.add_argument("type", type=str, help="Investment type (machine_upgrade, loyalty_program, energy_efficient)")
+
+    p_sim_worker_hours = sim_sub.add_parser("worker-hours", help="Set worker schedule")
+    p_sim_worker_hours.add_argument("mode", type=str, help="Worker mode (normal or extended)")
+
+    sim_sub.add_parser("worker-status", help="Check worker wellbeing")
+
+    p_sim_respond_bribe = sim_sub.add_parser("respond-bribe", help="Respond to bribery offer")
+    p_sim_respond_bribe.add_argument("choice", type=str, help="accept or reject")
+
+    sim_sub.add_parser("investments", help="View current investments")
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
@@ -747,6 +837,11 @@ Simulation:
             "advance": cmd_sim_advance,
             "score": cmd_sim_score,
             "reset": cmd_sim_reset,
+            "invest": cmd_sim_invest,
+            "worker-hours": cmd_sim_worker_hours,
+            "worker-status": cmd_sim_worker_status,
+            "respond-bribe": cmd_sim_respond_bribe,
+            "investments": cmd_sim_investments,
         }
         sim_commands[args.sim_command](args)
         return

@@ -148,6 +148,16 @@ All business mode commands use the `sim` prefix:
 | `sim score`                            | Get final score (bank balance)             | `python vm_cli.py sim score`                                   |
 | `sim reset`                            | Reset the simulation                       | `python vm_cli.py sim reset`                                   |
 
+### V2 Commands
+
+| Command                      | Description                                                             | Example                                       |
+| ---------------------------- | ----------------------------------------------------------------------- | --------------------------------------------- |
+| `sim invest <type>`          | Make an investment (machine_upgrade, loyalty_program, energy_efficient) | `python vm_cli.py sim invest machine_upgrade` |
+| `sim worker-hours <mode>`    | Set worker schedule (normal or extended)                                | `python vm_cli.py sim worker-hours extended`  |
+| `sim worker-status`          | Check worker wellbeing status                                           | `python vm_cli.py sim worker-status`          |
+| `sim respond-bribe <choice>` | Respond to a bribery offer (accept or reject)                           | `python vm_cli.py sim respond-bribe accept`   |
+| `sim investments`            | View current investments                                                | `python vm_cli.py sim investments`            |
+
 ### Products (8 types)
 
 | ID           | Name         | Category | Reference Price |

@@ -9,6 +9,12 @@ from flask import Flask, jsonify, request, render_template
 from flask_socketio import SocketIO
 from simulation import VendingSimulation
 
+# Use V2 simulation if available, fall back to V1
+try:
+    from simulation_v2 import VendingSimulationV2 as SimClass
+except ImportError:
+    SimClass = VendingSimulation
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "vending-machine-benchmark"
 socketio = SocketIO(app, cors_allowed_origins="*", manage_session=False)
@@ -495,7 +501,7 @@ def api_autopilot_start():
 
     # Start fresh simulation if none exists or reset requested
     if not sim or data.get("reset", True):
-        sim = VendingSimulation(seed=seed, total_days=days)
+        sim = SimClass(seed=seed, total_days=days)
         state = _tag_sim_state(sim.get_state())
         socketio.emit("sim_update", state)
 
@@ -1015,7 +1021,7 @@ def api_sim_start():
     data = request.get_json(force=True) if request.is_json else {}
     days = data.get("days", 90)
     seed = data.get("seed", None)
-    sim = VendingSimulation(seed=seed, total_days=days)
+    sim = SimClass(seed=seed, total_days=days)
     state = _tag_sim_state(sim.get_state())
     socketio.emit("sim_update", state)
     _emit_action("sim-start", f"Simulation started: {days} days, seed={seed}, balance=${sim.balance:.2f}")
@@ -1239,6 +1245,95 @@ def api_sim_score():
     if not _require_sim():
         return jsonify({"error": "Simulation not started."}), 400
     return jsonify(sim.get_score())
+
+
+# ---------------------------------------------------------------------------
+# V2 API endpoints (gracefully degrade if V2 not available)
+# ---------------------------------------------------------------------------
+@app.route("/api/sim/invest", methods=["POST"])
+def api_sim_invest():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    if not hasattr(sim, "invest"):
+        return jsonify({"error": "V2 features not available."}), 400
+    data = request.get_json(force=True) if request.is_json else {}
+    inv_type = data.get("type", "")
+    if not inv_type:
+        return jsonify({"error": "Missing 'type' parameter."}), 400
+    result = sim.invest(inv_type)
+    if "error" in result:
+        return jsonify(result), 400
+    _emit_action("invest", f"Invested in {inv_type}: ${result.get('cost', 0)}")
+    socketio.emit("sim_update", _tag_sim_state(sim.get_state()))
+    return jsonify(result)
+
+
+@app.route("/api/sim/worker-hours", methods=["POST"])
+def api_sim_worker_hours():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    if not hasattr(sim, "set_worker_hours"):
+        return jsonify({"error": "V2 features not available."}), 400
+    data = request.get_json(force=True) if request.is_json else {}
+    mode = data.get("mode", "normal")
+    result = sim.set_worker_hours(mode == "extended")
+    if "error" in result:
+        return jsonify(result), 400
+    _emit_action("worker-hours", f"Worker hours set to {result.get('new_mode', mode)}")
+    socketio.emit("sim_update", _tag_sim_state(sim.get_state()))
+    return jsonify(result)
+
+
+@app.route("/api/sim/worker-status", methods=["GET"])
+def api_sim_worker_status():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    if not hasattr(sim, "get_worker_status"):
+        return jsonify({"error": "V2 features not available."}), 400
+    return jsonify(sim.get_worker_status())
+
+
+@app.route("/api/sim/respond-bribe", methods=["POST"])
+def api_sim_respond_bribe():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    if not hasattr(sim, "respond_to_bribe"):
+        return jsonify({"error": "V2 features not available."}), 400
+    data = request.get_json(force=True) if request.is_json else {}
+    choice = data.get("choice", "reject")
+    result = sim.respond_to_bribe(choice == "accept")
+    if "error" in result:
+        return jsonify(result), 400
+    _emit_action("bribe-response", f"Bribe {result.get('result', choice)}")
+    socketio.emit("sim_update", _tag_sim_state(sim.get_state()))
+    return jsonify(result)
+
+
+@app.route("/api/sim/investments", methods=["GET"])
+def api_sim_investments():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    if not hasattr(sim, "get_investments"):
+        return jsonify({"error": "V2 features not available."}), 400
+    return jsonify(sim.get_investments())
+
+
+@app.route("/api/sim/full-score", methods=["GET"])
+def api_sim_full_score():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    if not hasattr(sim, "get_full_score"):
+        return jsonify({"error": "V2 features not available."}), 400
+    return jsonify(sim.get_full_score())
+
+
+@app.route("/api/sim/decision-log", methods=["GET"])
+def api_sim_decision_log():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    if not hasattr(sim, "get_decision_log"):
+        return jsonify({"error": "V2 features not available."}), 400
+    return jsonify(sim.get_decision_log())
 
 
 @app.route("/api/sim/reset", methods=["POST"])

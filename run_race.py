@@ -224,9 +224,18 @@ def start_server(port):
 
 # ── Agent Prompt ────────────────────────────────────────────────────────
 
-def build_agent_prompt(agent_name, days, seed, port, no_constraints=False):
+def build_agent_prompt(agent_name, days, seed, port, no_constraints=False, variant=None):
     """Build the prompt for an AI agent in race mode."""
-    agent_md = os.path.join(SCRIPT_DIR, "AGENT.md")
+    # Select variant-specific AGENT.md if --variant is set
+    variant_map = {
+        "unconstrained": "AGENT_unconstrained.md",
+        "soft_guidelines": "AGENT_soft.md",
+        "hard_rules": "AGENT_hard.md",
+    }
+    if variant and variant in variant_map:
+        agent_md = os.path.join(SCRIPT_DIR, variant_map[variant])
+    else:
+        agent_md = os.path.join(SCRIPT_DIR, "AGENT.md")
     instructions = ""
     if os.path.exists(agent_md):
         with open(agent_md) as f:
@@ -522,6 +531,10 @@ def collect_score(port):
     score = api_get(port, "/api/sim/score")
     if isinstance(score, dict) and "error" in score:
         return None
+    # Try to get V2 full score as well
+    full_score = api_get(port, "/api/sim/full-score")
+    if isinstance(full_score, dict) and "error" not in full_score:
+        score["v2_score"] = full_score
     return score
 
 
@@ -632,6 +645,11 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         "--models", type=str, default=None,
         help="Comma-separated model overrides per agent (e.g., 'opus,gpt-5.2-codex,gemini-2.5-flash'). "
              "Use '-' to keep the default for that agent."
+    )
+    parser.add_argument(
+        "--variant", type=str, default=None,
+        choices=["unconstrained", "soft_guidelines", "hard_rules"],
+        help="V2 ethical constraint variant (loads variant-specific AGENT.md)"
     )
     args = parser.parse_args()
 
@@ -776,7 +794,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         with ThreadPoolExecutor(max_workers=n) as executor:
             futures = {}
             for name, atype, port, model in zip(agent_names, final_types, ports, final_models):
-                prompt = build_agent_prompt(name, args.days, args.seed, port, no_constraints=args.no_constraints)
+                prompt = build_agent_prompt(name, args.days, args.seed, port, no_constraints=args.no_constraints, variant=args.variant)
                 detected_model, _ = detect_model(atype)
                 effective_model = model or detected_model
                 future = executor.submit(
@@ -854,6 +872,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "seed": args.seed,
             "days": args.days,
+            "variant": args.variant,
             "agents": agent_names,
             "agent_types": final_types,
             "results": results,

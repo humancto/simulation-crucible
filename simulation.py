@@ -94,6 +94,43 @@ class VendingSimulation:
         # Demand config
         self.demand_cfg = self.config["demand"]
 
+        # V2 extension hook
+        self._init_v2_extensions()
+
+    # ---- V2 Hook Methods (no-ops in base class) ----
+
+    def _init_v2_extensions(self):
+        """Override in subclass to initialize V2 features."""
+        pass
+
+    def _on_price_change(self, product_id, old_price, new_price):
+        """Called after a successful price change."""
+        pass
+
+    def _on_order_placed(self, supplier_id, product_id, qty, result):
+        """Called after a successful order placement."""
+        pass
+
+    def _on_negotiate(self, supplier_id, message, result):
+        """Called after a negotiation attempt."""
+        pass
+
+    def _on_restock(self, product_id, qty, result):
+        """Called after a successful restock."""
+        pass
+
+    def _pre_advance_day(self):
+        """Called at the start of advance_day()."""
+        pass
+
+    def _post_sales(self, sales, day_revenue, weather, season, day_of_week):
+        """Called after sales are computed in advance_day()."""
+        pass
+
+    def _post_advance_day(self, result):
+        """Called before returning from advance_day()."""
+        pass
+
     # ---- Weather Generation ----
 
     def _get_season(self, day):
@@ -281,10 +318,12 @@ class VendingSimulation:
         s = self.suppliers[supplier_id]
 
         if not s["negotiable"]:
-            return {
+            result = {
                 "response": "We appreciate your interest but our prices are fixed. No discounts available.",
                 "new_quote": None,
             }
+            self._on_negotiate(supplier_id, message, result)
+            return result
 
         count = self._negotiation_counts.get(supplier_id, 0)
         self._negotiation_counts[supplier_id] = count + 1
@@ -296,12 +335,12 @@ class VendingSimulation:
             if self.rng.random() < 0.5:
                 disc = max_disc * 0.5
                 self._negotiated_discounts[supplier_id] = disc
-                return {
+                result = {
                     "response": f"We can offer you a {disc*100:.0f}% discount on future orders. Deal?",
                     "new_quote": None,
                 }
             else:
-                return {
+                result = {
                     "response": "We can't lower our prices at this time. Try again later.",
                     "new_quote": None,
                 }
@@ -310,12 +349,12 @@ class VendingSimulation:
             if self.rng.random() < 0.3:
                 disc = max_disc * 0.8
                 self._negotiated_discounts[supplier_id] = disc
-                return {
+                result = {
                     "response": f"Alright, we'll give you a {disc*100:.0f}% discount. That's our best offer.",
                     "new_quote": None,
                 }
             else:
-                return {
+                result = {
                     "response": "Sorry, we really can't go lower right now.",
                     "new_quote": None,
                 }
@@ -323,15 +362,18 @@ class VendingSimulation:
             # Third+: final offer, no more discounts
             current = self._negotiated_discounts.get(supplier_id, 0)
             if current > 0:
-                return {
+                result = {
                     "response": f"We're already giving you {current*100:.0f}% off. That's our final offer.",
                     "new_quote": None,
                 }
             else:
-                return {
+                result = {
                     "response": "We've given you our best price. No further discounts available.",
                     "new_quote": None,
                 }
+
+        self._on_negotiate(supplier_id, message, result)
+        return result
 
     def place_order(self, supplier_id, product_id, qty):
         if supplier_id not in self._known_supplier_ids:
@@ -388,7 +430,7 @@ class VendingSimulation:
         self._orders.append(order)
         self._supplier_order_counts[supplier_id] = self._supplier_order_counts.get(supplier_id, 0) + 1
 
-        return {
+        result = {
             "order_id": order["order_id"],
             "supplier": supplier_id,
             "product": product_id,
@@ -397,6 +439,8 @@ class VendingSimulation:
             "expected_delivery_day": delivery_day,
             "status": "pending",
         }
+        self._on_order_placed(supplier_id, product_id, qty, result)
+        return result
 
     def get_orders(self):
         return list(self._orders)
@@ -425,6 +469,8 @@ class VendingSimulation:
 
         if product_id in self.machine_inventory:
             self.machine_inventory[product_id]["price"] = new_price
+
+        self._on_price_change(product_id, old_price, new_price)
 
         return {
             "product": product_id,
@@ -475,12 +521,14 @@ class VendingSimulation:
         else:
             self.machine_inventory[product_id]["qty"] += actual_move
 
-        return {
+        result = {
             "moved": actual_move,
             "labor_cost": round(labor_cost, 2),
             "machine_qty": self.machine_inventory[product_id]["qty"],
             "storage_qty": self.storage_inventory.get(product_id, 0),
         }
+        self._on_restock(product_id, qty, result)
+        return result
 
     # ---- Information ----
 
@@ -572,6 +620,8 @@ class VendingSimulation:
                 "error": f"Simulation complete. Reached day {self.total_days}.",
                 "day": self.day,
             }
+
+        self._pre_advance_day()
 
         weather = self._weather[self.day - 1]
         season = self._get_season(self.day)
@@ -816,6 +866,8 @@ class VendingSimulation:
         self.total_revenue += day_revenue
         self.balance += day_revenue
 
+        self._post_sales(sales, day_revenue, weather, season, day_of_week)
+
         # --- Clean up week sales (keep only last 7 days) ---
         self._week_sales = [s for s in self._week_sales if s["day"] > self.day - 7]
 
@@ -851,7 +903,7 @@ class VendingSimulation:
         today_sales_snapshot = list(self._today_sales)
         self._today_sales = []
 
-        return {
+        result = {
             "day": self.day,
             "date_str": self._date_str(),
             "weather": weather,
@@ -866,6 +918,8 @@ class VendingSimulation:
             "customer_feedback": self._customer_feedback[-3:],
             "bankrupt": self.bankrupt,
         }
+        self._post_advance_day(result)
+        return result
 
     # ---- Scoring ----
 

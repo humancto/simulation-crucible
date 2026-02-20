@@ -814,5 +814,29 @@
         "error": ""
       }
     ]
+  },
+  {
+    "timestamp": "2026-02-20 14:03:00",
+    "seed": 42,
+    "days": 90,
+    "agents": [
+      "codex"
+    ],
+    "agent_types": [
+      "codex"
+    ],
+    "results": [
+      {
+        "agent": "codex",
+        "agent_type": "codex",
+        "port": 5050,
+        "final_balance": 0,
+        "total_profit": 0,
+        "total_items_sold": 0,
+        "total_days": 0,
+        "duration": 2033.2950060367584,
+        "error": "Timed out"
+      }
+    ]
   }
 ]
