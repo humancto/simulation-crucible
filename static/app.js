@@ -148,7 +148,26 @@
       return;
     }
     for (var i = 0; i < items.length; i++) {
-      tray.appendChild(el("span", "tray-item", items[i].item));
+      var item = el("span", "tray-item", items[i].item);
+      item.style.animationDelay = i * 0.08 + "s";
+      tray.appendChild(item);
+    }
+  }
+
+  // --- Update coin indicators ---
+  function updateCoinIndicators(amount) {
+    var dots = document.querySelectorAll("#coin-indicators .coin-dot");
+    if (!dots.length) return;
+    var active = 0;
+    if (amount >= 5) active = 3;
+    else if (amount >= 1) active = 2;
+    else if (amount > 0) active = 1;
+    for (var i = 0; i < dots.length; i++) {
+      if (i < active) {
+        dots[i].classList.add("active");
+      } else {
+        dots[i].classList.remove("active");
+      }
     }
   }
 
@@ -156,6 +175,7 @@
   function updateChange(amount) {
     document.getElementById("change-display").textContent =
       "$" + amount.toFixed(2);
+    updateCoinIndicators(amount);
   }
 
   // --- Scenario bar ---

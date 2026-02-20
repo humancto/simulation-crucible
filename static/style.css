@@ -407,15 +407,24 @@ main {
   font-weight: 700;
 }
 
-/* Dispensing Area */
-.dispense-area {
-  background: #0a0a12;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
+/* Dispensing Area — Arcade Style */
+.dispense-area.arcade {
+  background: #050510;
+  border: 2px solid #2a2a3a;
+  border-radius: 12px;
+  padding: 18px;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 16px;
+  box-shadow:
+    0 0 20px rgba(0, 229, 255, 0.06),
+    inset 0 0 30px rgba(0, 0, 0, 0.4);
+}
+
+.dispense-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .dispense-label,
@@ -428,45 +437,117 @@ main {
   margin-bottom: 6px;
 }
 
+.dispense-flap {
+  height: 6px;
+  background: linear-gradient(180deg, #3a3a4a, #2a2a35, #1a1a25);
+  border-radius: 4px 4px 0 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.dispense-well {
+  perspective: 300px;
+  background: #080812;
+  border: 1px solid #1a1a28;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  box-shadow:
+    inset 0 4px 12px rgba(0, 0, 0, 0.6),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.3),
+    inset 2px 0 6px rgba(0, 0, 0, 0.2),
+    inset -2px 0 6px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
 .dispense-tray {
-  flex: 1;
-  min-height: 40px;
+  min-height: 50px;
+  padding: 10px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
+  transform: rotateX(2deg);
+  transform-origin: bottom center;
 }
 
 .empty-tray {
   color: var(--text-dim);
   font-size: 12px;
   font-style: italic;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 229, 255, 0.06),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: scanline-sweep 3s linear infinite;
+  padding: 4px 12px;
+  border-radius: 3px;
+}
+
+.well-floor {
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    #1a1a28 0px,
+    #1a1a28 4px,
+    #0e0e1a 4px,
+    #0e0e1a 8px
+  );
+  opacity: 0.6;
 }
 
 .tray-item {
   background: var(--accent);
   color: var(--bg);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 4px;
-  animation: drop-in 0.3s ease-out;
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+  animation: arcade-drop 0.4s ease-out;
 }
 
-@keyframes drop-in {
-  from {
+@keyframes arcade-drop {
+  0% {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-60px);
   }
-  to {
+  60% {
+    opacity: 1;
+    transform: translateY(4px);
+  }
+  80% {
+    transform: translateY(-2px);
+  }
+  100% {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-.change-area {
+@keyframes scanline-sweep {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Change Return — Arcade Coin Slot */
+.change-area.arcade-change {
   text-align: center;
-  min-width: 90px;
+  min-width: 100px;
+  background: linear-gradient(180deg, #1e1e2e, #16162a);
+  border: 1px solid #2a2a3a;
+  border-radius: 8px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 
 #change-display {
@@ -475,6 +556,53 @@ main {
   font-weight: 700;
   color: var(--yellow);
   text-shadow: 0 0 8px rgba(255, 215, 64, 0.3);
+}
+
+.coin-indicators {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.coin-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2a2a3a;
+  border: 1px solid #3a3a4a;
+  transition: all 0.3s;
+}
+
+.coin-dot.active {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  box-shadow: 0 0 8px rgba(255, 215, 64, 0.6);
+}
+
+/* LED Strip */
+.arcade-led-strip {
+  height: 3px;
+  margin-top: 2px;
+  border-radius: 0 0 8px 8px;
+  background: linear-gradient(
+    90deg,
+    var(--accent),
+    var(--purple),
+    var(--accent),
+    var(--purple),
+    var(--accent)
+  );
+  background-size: 200% 100%;
+  animation: led-scroll 3s linear infinite;
+}
+
+@keyframes led-scroll {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 /* Sidebar */

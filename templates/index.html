@@ -86,16 +86,28 @@
                         <!-- Filled by JS -->
                     </div>
 
-                    <div class="dispense-area">
-                        <div class="dispense-label">DISPENSING TRAY</div>
-                        <div class="dispense-tray" id="dispense-tray">
-                            <span class="empty-tray">Empty</span>
+                    <div class="dispense-area arcade">
+                        <div class="dispense-section">
+                            <div class="dispense-label">DISPENSING TRAY</div>
+                            <div class="dispense-flap"></div>
+                            <div class="dispense-well">
+                                <div class="dispense-tray" id="dispense-tray">
+                                    <span class="empty-tray">Empty</span>
+                                </div>
+                                <div class="well-floor"></div>
+                            </div>
                         </div>
-                        <div class="change-area">
-                            <div class="change-label">CHANGE</div>
+                        <div class="change-area arcade-change">
+                            <div class="change-label">COIN RETURN</div>
                             <div id="change-display">$0.00</div>
+                            <div class="coin-indicators" id="coin-indicators">
+                                <span class="coin-dot"></span>
+                                <span class="coin-dot"></span>
+                                <span class="coin-dot"></span>
+                            </div>
                         </div>
                     </div>
+                    <div class="arcade-led-strip"></div>
                 </div>
             </section>
 
