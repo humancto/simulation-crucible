@@ -30,12 +30,18 @@ autopilot = {
 
 PRODUCTS = ["water", "soda", "energy_drink", "juice", "chips", "candy_bar", "trail_mix", "cookies"]
 
-def _emit_action(action, detail, success=True):
-    """Emit an action event with player tag."""
+def _emit_action(action, detail, success=True, flush=False):
+    """Emit an action event with player tag.
+
+    When flush=True, sleep briefly after emit so the WebSocket frame is sent
+    individually instead of being coalesced with the next emit.
+    """
     entry = {"time": time.time(), "action": action, "detail": detail, "success": success}
     if player_info["name"]:
         entry["player"] = player_info["name"]
     socketio.emit("sim_action", entry)
+    if flush:
+        time.sleep(0.05)
 
 
 def _autopilot_loop():
@@ -58,7 +64,7 @@ def _autopilot_loop():
         state["autopilot_speed"] = speed
         socketio.emit("sim_update", state)
 
-    _emit_action("strategy", f"Autopilot engaged at {speed}x speed for {sim.total_days} days")
+    _emit_action("strategy", f"Autopilot engaged at {speed}x speed for {sim.total_days} days", flush=True)
 
     last_order_day = -10  # force immediate order
 
@@ -92,23 +98,23 @@ def _autopilot_loop():
                 order_reason = f"Day {current_day}: Stock critically low ({total_stock} items), emergency reorder"
 
         if should_order:
-            _emit_action("thinking", order_reason)
+            _emit_action("thinking", order_reason, flush=True)
 
             # Decide quantities based on season
             drink_boost = 1.0
             snack_boost = 1.0
             if season == "summer":
                 drink_boost = 1.4
-                _emit_action("thinking", f"Summer season: boosting drink orders by 40%")
+                _emit_action("thinking", f"Summer season: boosting drink orders by 40%", flush=True)
             elif season == "winter":
                 snack_boost = 1.3
-                _emit_action("thinking", f"Winter season: boosting snack orders by 30%")
+                _emit_action("thinking", f"Winter season: boosting snack orders by 30%", flush=True)
 
             # Weekend pre-stock
             order_multiplier = 1.0
             if is_weekend or day_of_week == "friday":
                 order_multiplier = 1.3
-                _emit_action("thinking", f"Weekend approaching: ordering 30% extra")
+                _emit_action("thinking", f"Weekend approaching: ordering 30% extra", flush=True)
 
             drink_products = ["water", "soda", "energy_drink", "juice"]
             snack_products = ["chips", "candy_bar", "trail_mix", "cookies"]
@@ -129,16 +135,16 @@ def _autopilot_loop():
                         ordered_count += qty
                         total_cost += result.get("total_cost", 0)
                     else:
-                        _emit_action("order-fail", f"Cannot order {pid}: {result.get('error', '')}", success=False)
+                        _emit_action("order-fail", f"Cannot order {pid}: {result.get('error', '')}", success=False, flush=True)
                 except Exception:
                     pass
 
             if ordered_count > 0:
-                _emit_action("order", f"Ordered {ordered_count} items from FreshCo (${total_cost:.2f}) — delivery in 2 days")
+                _emit_action("order", f"Ordered {ordered_count} items from FreshCo (${total_cost:.2f}) — delivery in 2 days", flush=True)
 
             # Quick-order popular items from QuickStock on day 0
             if current_day == 0:
-                _emit_action("thinking", "QuickStock: ordering popular items for Day 1 sales (1-day delivery)")
+                _emit_action("thinking", "QuickStock: ordering popular items for Day 1 sales (1-day delivery)", flush=True)
                 qs_count = 0
                 qs_cost = 0.0
                 for pid in ["water", "soda", "chips", "candy_bar"]:
@@ -150,7 +156,7 @@ def _autopilot_loop():
                     except Exception:
                         pass
                 if qs_count > 0:
-                    _emit_action("order", f"QuickStock rush order: {qs_count} items (${qs_cost:.2f}) — arrives tomorrow")
+                    _emit_action("order", f"QuickStock rush order: {qs_count} items (${qs_cost:.2f}) — arrives tomorrow", flush=True)
 
             last_order_day = current_day
 
@@ -183,7 +189,7 @@ def _autopilot_loop():
                     pass
 
         if pricing_changes:
-            _emit_action("pricing", "Adjusted prices: " + ", ".join(pricing_changes[:4]))
+            _emit_action("pricing", "Adjusted prices: " + ", ".join(pricing_changes[:4]), flush=True)
 
         # --- Restock machine from storage ---
         restocked_items = []
@@ -204,7 +210,7 @@ def _autopilot_loop():
                         pass
 
         if restocked_items:
-            _emit_action("restock", f"Restocked {total_moved} items: " + ", ".join(restocked_items[:5]))
+            _emit_action("restock", f"Restocked {total_moved} items: " + ", ".join(restocked_items[:5]), flush=True)
 
         # --- Advance day ---
         try:
@@ -244,27 +250,28 @@ def _autopilot_loop():
 
             _emit_action(
                 f"day-{result.get('day', '?')}",
-                f"{weather} | {total_units} sold | +${total_rev:.2f} rev | profit ${daily_profit:.2f} | bal ${balance:.2f}{top_product}"
+                f"{weather} | {total_units} sold | +${total_rev:.2f} rev | profit ${daily_profit:.2f} | bal ${balance:.2f}{top_product}",
+                flush=True,
             )
 
             # Log notable events
             events = result.get("events", [])
             for ev in events:
-                _emit_action("event", ev, success="BANKRUPT" not in ev)
+                _emit_action("event", ev, success="BANKRUPT" not in ev, flush=True)
 
             # Log deliveries
             deliveries = result.get("deliveries", [])
             for d in deliveries:
                 if d["status"] == "delivered":
-                    _emit_action("delivery", f"Received {d['qty']}x {d['product']} (Order #{d['order_id']})")
+                    _emit_action("delivery", f"Received {d['qty']}x {d['product']} (Order #{d['order_id']})", flush=True)
                 elif d["status"] == "failed":
-                    _emit_action("delivery-fail", f"Order #{d['order_id']} failed: {d.get('reason', 'unknown')}", success=False)
+                    _emit_action("delivery-fail", f"Order #{d['order_id']} failed: {d.get('reason', 'unknown')}", success=False, flush=True)
 
         except Exception:
             break
 
         if result.get("bankrupt"):
-            _emit_action("bankrupt", f"Business went bankrupt on day {sim.day}. Balance: ${sim.balance:.2f}", success=False)
+            _emit_action("bankrupt", f"Business went bankrupt on day {sim.day}. Balance: ${sim.balance:.2f}", success=False, flush=True)
             break
 
         # Sleep between days

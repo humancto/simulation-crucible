@@ -118,7 +118,7 @@
 
   function connectToServer(port) {
     var url = "http://localhost:" + port;
-    var sock = io(url, { transports: ["websocket", "polling"] });
+    var sock = io(url, { transports: ["websocket"] });
     sockets[port] = sock;
 
     sock.on("connect", function () {

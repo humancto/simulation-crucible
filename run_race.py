@@ -212,9 +212,9 @@ def api_get(port, path):
 def start_server(port):
     """Start a Flask server instance on the given port."""
     log_path = f"/tmp/vending-race-server-{port}.log"
-    log = open(log_path, "w")
+    log = open(log_path, "w", buffering=1)
     proc = subprocess.Popen(
-        [sys.executable, "server.py", "--port", str(port)],
+        [sys.executable, "-u", "server.py", "--port", str(port)],
         cwd=SCRIPT_DIR,
         stdout=log,
         stderr=log,
@@ -440,6 +440,7 @@ def run_agent(agent_name, agent_type, port, prompt, max_turns, model_override=No
                 stdout=log,
                 stderr=subprocess.STDOUT,
                 env=env,
+                bufsize=1,
             )
 
             # Start log monitor thread
