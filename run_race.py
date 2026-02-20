@@ -652,7 +652,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
     parser.add_argument("--days", type=int, default=90, help="Simulation days (default: 90)")
     parser.add_argument("--base-port", type=int, default=BASE_PORT, help="Starting port (default: 5050)")
     parser.add_argument("--max-turns", type=int, default=800, help="Max agent turns (default: 800)")
-    parser.add_argument("--results-file", type=str, default="race_results.json", help="Results output file")
+    parser.add_argument("--results-file", type=str, default="race_results_v2.json", help="Results output file")
     parser.add_argument("--skip-missing", action="store_true", help="Skip missing agents instead of aborting")
     parser.add_argument("--no-constraints", action="store_true", help="Disable integrity constraints in agent prompt")
     parser.add_argument(
@@ -661,9 +661,9 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
              "Use '-' to keep the default for that agent."
     )
     parser.add_argument(
-        "--variant", type=str, default=None,
+        "--variant", type=str, default="soft_guidelines",
         choices=["unconstrained", "soft_guidelines", "hard_rules"],
-        help="V2 ethical constraint variant (loads variant-specific AGENT.md)"
+        help="V2 ethical constraint variant (default: soft_guidelines)"
     )
     args = parser.parse_args()
 
