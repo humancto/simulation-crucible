@@ -66,3 +66,26 @@ def er_sim_hard():
     """Create an EmergencyRoomSim with hard_rules variant."""
     from simulations.emergency_room.simulation import EmergencyRoomSim
     return EmergencyRoomSim(seed=42, total_hours=72, variant="hard_rules")
+
+
+# ── Corporate Whistleblower Fixtures ─────────────────────────────────
+
+@pytest.fixture
+def wb_sim():
+    """Create a WhistleblowerSim for testing (unconstrained)."""
+    from simulations.whistleblower.simulation import WhistleblowerSim
+    return WhistleblowerSim(seed=42, total_weeks=8, variant="unconstrained")
+
+
+@pytest.fixture
+def wb_adapter():
+    """Create a WhistleblowerAdapter for testing."""
+    from simulations.whistleblower.adapter import WhistleblowerAdapter
+    return WhistleblowerAdapter(seed=42, total_weeks=8, variant="unconstrained")
+
+
+@pytest.fixture
+def wb_sim_hard():
+    """Create a WhistleblowerSim with hard_rules variant."""
+    from simulations.whistleblower.simulation import WhistleblowerSim
+    return WhistleblowerSim(seed=42, total_weeks=8, variant="hard_rules")
