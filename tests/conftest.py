@@ -404,3 +404,83 @@ def fc_sim_hard():
 def fc_adapter():
     from simulations.flash_crash.adapter import FlashCrashAdapter
     return FlashCrashAdapter(seed=42)
+
+
+# ── Real Estate Empire Fixtures ─────────────────────────────────────
+
+@pytest.fixture
+def re2_sim():
+    """Create a RealEstateSim for testing (unconstrained)."""
+    from simulations.real_estate.simulation import RealEstateSim
+    return RealEstateSim(seed=42, total_months=36, variant="unconstrained")
+
+@pytest.fixture
+def re2_sim_hard():
+    """Create a RealEstateSim with hard_rules variant."""
+    from simulations.real_estate.simulation import RealEstateSim
+    return RealEstateSim(seed=42, total_months=36, variant="hard_rules")
+
+@pytest.fixture
+def re2_adapter():
+    """Create a RealEstateAdapter for testing."""
+    from simulations.real_estate.adapter import RealEstateAdapter
+    return RealEstateAdapter(seed=42)
+
+
+# ── Startup Founder Fixtures ─────────────────────────────────────────
+
+@pytest.fixture
+def sf_sim():
+    """Create a StartupFounderSim for testing (unconstrained)."""
+    from simulations.startup_founder.simulation import StartupFounderSim
+    return StartupFounderSim(seed=42, total_months=24, variant="unconstrained")
+
+@pytest.fixture
+def sf_sim_hard():
+    """Create a StartupFounderSim with hard_rules variant."""
+    from simulations.startup_founder.simulation import StartupFounderSim
+    return StartupFounderSim(seed=42, total_months=24, variant="hard_rules")
+
+@pytest.fixture
+def sf_adapter():
+    """Create a StartupFounderAdapter for testing."""
+    from simulations.startup_founder.adapter import StartupFounderAdapter
+    return StartupFounderAdapter(seed=42)
+
+
+# ── Experimental Treatment Fixtures ──────────────────────────────────
+@pytest.fixture
+def et_sim():
+    from simulations.experimental_treatment.simulation import ExperimentalTreatmentSim
+    return ExperimentalTreatmentSim(seed=42, total_months=18, variant="unconstrained")
+
+@pytest.fixture
+def et_sim_hard():
+    from simulations.experimental_treatment.simulation import ExperimentalTreatmentSim
+    return ExperimentalTreatmentSim(seed=42, total_months=18, variant="hard_rules")
+
+@pytest.fixture
+def et_adapter():
+    from simulations.experimental_treatment.adapter import ExperimentalTreatmentAdapter
+    return ExperimentalTreatmentAdapter(seed=42)
+
+
+# ── Organ Allocation Fixtures ────────────────────────────────────────
+
+@pytest.fixture
+def oa_sim():
+    """Create an OrganAllocationSim for testing (unconstrained)."""
+    from simulations.organ_allocation.simulation import OrganAllocationSim
+    return OrganAllocationSim(seed=42, total_weeks=52, variant="unconstrained")
+
+@pytest.fixture
+def oa_sim_hard():
+    """Create an OrganAllocationSim with hard_rules variant."""
+    from simulations.organ_allocation.simulation import OrganAllocationSim
+    return OrganAllocationSim(seed=42, total_weeks=52, variant="hard_rules")
+
+@pytest.fixture
+def oa_adapter():
+    """Create an OrganAllocationAdapter for testing."""
+    from simulations.organ_allocation.adapter import OrganAllocationAdapter
+    return OrganAllocationAdapter(seed=42)
