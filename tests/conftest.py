@@ -559,3 +559,84 @@ def pc_sim_hard():
 def pc_adapter():
     from simulations.pow_camp.adapter import POWCampAdapter
     return POWCampAdapter(seed=42)
+
+
+# ── Privacy vs. Security Fixtures ──────────────────────────────────────
+
+@pytest.fixture
+def ps_sim():
+    from simulations.privacy_security.simulation import PrivacySecuritySim
+    return PrivacySecuritySim(seed=42, total_days=30)
+
+@pytest.fixture
+def ps_sim_hard():
+    from simulations.privacy_security.simulation import PrivacySecuritySim
+    return PrivacySecuritySim(seed=42, total_days=30, variant="hard_rules")
+
+@pytest.fixture
+def ps_adapter():
+    from simulations.privacy_security.adapter import PrivacySecurityAdapter
+    return PrivacySecurityAdapter(seed=42, total_days=30)
+
+
+# ── Trolley Problems at Scale Fixtures ──────────────────────────────
+
+@pytest.fixture
+def tp_sim():
+    """Create a TrolleyProblemSim for testing (unconstrained)."""
+    from simulations.trolley_problem.simulation import TrolleyProblemSim
+    return TrolleyProblemSim(seed=42, total_rounds=40)
+
+@pytest.fixture
+def tp_sim_hard():
+    """Create a TrolleyProblemSim with hard_rules variant."""
+    from simulations.trolley_problem.simulation import TrolleyProblemSim
+    return TrolleyProblemSim(seed=42, total_rounds=40, variant="hard_rules")
+
+@pytest.fixture
+def tp_adapter():
+    """Create a TrolleyProblemAdapter for testing."""
+    from simulations.trolley_problem.adapter import TrolleyProblemAdapter
+    return TrolleyProblemAdapter(seed=42, total_rounds=40)
+
+
+# ── School Principal Fixtures ──────────────────────────────────────
+
+@pytest.fixture
+def sp_sim():
+    """Create a SchoolPrincipalSim for testing (unconstrained)."""
+    from simulations.school_principal.simulation import SchoolPrincipalSim
+    return SchoolPrincipalSim(seed=42, total_weeks=36, variant="unconstrained")
+
+@pytest.fixture
+def sp_sim_hard():
+    """Create a SchoolPrincipalSim with hard_rules variant."""
+    from simulations.school_principal.simulation import SchoolPrincipalSim
+    return SchoolPrincipalSim(seed=42, total_weeks=36, variant="hard_rules")
+
+@pytest.fixture
+def sp_adapter():
+    """Create a SchoolPrincipalAdapter for testing."""
+    from simulations.school_principal.adapter import SchoolPrincipalAdapter
+    return SchoolPrincipalAdapter(seed=42, total_weeks=36)
+
+
+# ── Hostage Negotiator Fixtures ──────────────────────────────────────
+
+@pytest.fixture
+def hn_sim():
+    """Create a HostageNegotiatorSim for testing (unconstrained)."""
+    from simulations.hostage_negotiator.simulation import HostageNegotiatorSim
+    return HostageNegotiatorSim(seed=42, total_hours=24, variant="unconstrained")
+
+@pytest.fixture
+def hn_sim_hard():
+    """Create a HostageNegotiatorSim with hard_rules variant."""
+    from simulations.hostage_negotiator.simulation import HostageNegotiatorSim
+    return HostageNegotiatorSim(seed=42, total_hours=24, variant="hard_rules")
+
+@pytest.fixture
+def hn_adapter():
+    """Create a HostageNegotiatorAdapter for testing."""
+    from simulations.hostage_negotiator.adapter import HostageNegotiatorAdapter
+    return HostageNegotiatorAdapter(seed=42, total_hours=24, variant="unconstrained")
