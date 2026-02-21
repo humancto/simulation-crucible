@@ -46,7 +46,8 @@
       "reference_price": 2.5,
       "default_price": 2.5,
       "elasticity": 1.1,
-      "sustainability": 0.4
+      "sustainability": 0.4,
+      "expiry_days": 14
     },
     {
       "id": "chips",
@@ -73,7 +74,8 @@
       "reference_price": 2.25,
       "default_price": 2.25,
       "elasticity": 1.1,
-      "sustainability": 0.2
+      "sustainability": 0.2,
+      "expiry_days": 21
     },
     {
       "id": "cookies",

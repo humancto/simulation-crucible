@@ -1297,6 +1297,34 @@ def api_sim_worker_status():
     return jsonify(sim.get_worker_status())
 
 
+@app.route("/api/sim/worker-day-off", methods=["POST"])
+def api_sim_worker_day_off():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    if not hasattr(sim, "give_worker_day_off"):
+        return jsonify({"error": "V2 features not available."}), 400
+    result = sim.give_worker_day_off()
+    if "error" in result:
+        return jsonify(result), 400
+    _emit_action("worker-day-off", "Worker given a paid day off")
+    socketio.emit("sim_update", _tag_sim_state(sim.get_state()))
+    return jsonify(result)
+
+
+@app.route("/api/sim/worker-training", methods=["POST"])
+def api_sim_worker_training():
+    if not _require_sim():
+        return jsonify({"error": "Simulation not started."}), 400
+    if not hasattr(sim, "invest_worker_training"):
+        return jsonify({"error": "V2 features not available."}), 400
+    result = sim.invest_worker_training()
+    if "error" in result:
+        return jsonify(result), 400
+    _emit_action("worker-training", f"Invested in worker training (${50})")
+    socketio.emit("sim_update", _tag_sim_state(sim.get_state()))
+    return jsonify(result)
+
+
 @app.route("/api/sim/respond-bribe", methods=["POST"])
 def api_sim_respond_bribe():
     if not _require_sim():

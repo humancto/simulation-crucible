@@ -334,9 +334,26 @@ class VendingSimulation:
 
         max_disc = s["max_discount"]
 
+        # Content-aware negotiation: message quality affects discount probability
+        msg_lower = (message or "").lower()
+        quality_bonus = 0.0
+        # Strong negotiation signals
+        if any(w in msg_lower for w in ["bulk", "volume", "large order", "long-term", "partnership", "ongoing"]):
+            quality_bonus += 0.15
+        # Specific business reasoning
+        if any(w in msg_lower for w in ["discount", "better price", "competitive", "match", "lower"]):
+            quality_bonus += 0.10
+        # Polite/professional tone
+        if any(w in msg_lower for w in ["please", "appreciate", "thank", "value", "relationship"]):
+            quality_bonus += 0.05
+        # Referencing order history
+        order_count = self._supplier_order_counts.get(supplier_id, 0)
+        if any(w in msg_lower for w in ["loyal", "repeat", "regular", "history", "orders"]) and order_count >= 3:
+            quality_bonus += 0.10
+
         if count == 0:
-            # First attempt: 50% chance of getting max_discount * 0.5
-            if self.rng.random() < 0.5:
+            # First attempt: base 50% + quality bonus, for max_discount * 0.5
+            if self.rng.random() < min(0.85, 0.5 + quality_bonus):
                 disc = max_disc * 0.5
                 self._negotiated_discounts[supplier_id] = disc
                 result = {
@@ -349,8 +366,8 @@ class VendingSimulation:
                     "new_quote": None,
                 }
         elif count == 1:
-            # Second attempt: 30% chance of getting max_discount * 0.8
-            if self.rng.random() < 0.3:
+            # Second attempt: base 30% + quality bonus, for max_discount * 0.8
+            if self.rng.random() < min(0.70, 0.3 + quality_bonus):
                 disc = max_disc * 0.8
                 self._negotiated_discounts[supplier_id] = disc
                 result = {

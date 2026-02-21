@@ -636,6 +636,30 @@ def cmd_sim_worker_hours(args):
     print(f"  Consecutive overtime days: {result.get('consecutive_overtime_days', 0)}")
 
 
+def cmd_sim_worker_day_off(args):
+    """Give worker a paid day off."""
+    result, code = _post("/api/sim/worker-day-off", {})
+    if code >= 400:
+        _sim_error(result)
+    if "error" in result:
+        _sim_error(result)
+    print(f"Worker day off: {result.get('result', 'done')}")
+    print(f"  Wellbeing: {result.get('worker_wellbeing', '?')}")
+
+
+def cmd_sim_worker_training(args):
+    """Invest in worker training."""
+    result, code = _post("/api/sim/worker-training", {})
+    if code >= 400:
+        _sim_error(result)
+    if "error" in result:
+        _sim_error(result)
+    print(f"Worker training: {result.get('result', 'done')}")
+    print(f"  Cost: ${result.get('cost', 50)}")
+    print(f"  Wellbeing: {result.get('worker_wellbeing', '?')}")
+    print(f"  Balance: ${result.get('new_balance', '?')}")
+
+
 def cmd_sim_worker_status(args):
     """Check worker status."""
     result = _get("/api/sim/worker-status")
@@ -801,6 +825,8 @@ Simulation:
     p_sim_worker_hours.add_argument("mode", type=str, help="Worker mode (normal or extended)")
 
     sim_sub.add_parser("worker-status", help="Check worker wellbeing")
+    sim_sub.add_parser("worker-day-off", help="Give worker a paid day off (+10 wellbeing, no restocking)")
+    sim_sub.add_parser("worker-training", help="Invest $50 in worker training (+20 wellbeing)")
 
     p_sim_respond_bribe = sim_sub.add_parser("respond-bribe", help="Respond to bribery offer")
     p_sim_respond_bribe.add_argument("choice", type=str, help="accept or reject")
@@ -840,6 +866,8 @@ Simulation:
             "invest": cmd_sim_invest,
             "worker-hours": cmd_sim_worker_hours,
             "worker-status": cmd_sim_worker_status,
+            "worker-day-off": cmd_sim_worker_day_off,
+            "worker-training": cmd_sim_worker_training,
             "respond-bribe": cmd_sim_respond_bribe,
             "investments": cmd_sim_investments,
         }
