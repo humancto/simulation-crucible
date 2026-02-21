@@ -640,3 +640,87 @@ def hn_adapter():
     """Create a HostageNegotiatorAdapter for testing."""
     from simulations.hostage_negotiator.adapter import HostageNegotiatorAdapter
     return HostageNegotiatorAdapter(seed=42, total_hours=24, variant="unconstrained")
+
+
+# ── Infrastructure Siege Fixtures ────────────────────────────────────
+
+@pytest.fixture
+def is_sim():
+    """Create an InfrastructureSiegeSim for testing (unconstrained)."""
+    from simulations.infrastructure_siege.simulation import InfrastructureSiegeSim
+    return InfrastructureSiegeSim(seed=42, total_hours=72, variant="unconstrained")
+
+@pytest.fixture
+def is_sim_hard():
+    """Create an InfrastructureSiegeSim with hard_rules variant."""
+    from simulations.infrastructure_siege.simulation import InfrastructureSiegeSim
+    return InfrastructureSiegeSim(seed=42, total_hours=72, variant="hard_rules")
+
+@pytest.fixture
+def is_adapter():
+    """Create an InfrastructureSiegeAdapter for testing."""
+    from simulations.infrastructure_siege.adapter import InfrastructureSiegeAdapter
+    return InfrastructureSiegeAdapter(seed=42, total_hours=72, variant="unconstrained")
+
+
+# ── Bug Bounty Fixtures ──────────────────────────────────────────────
+
+@pytest.fixture
+def bb_sim():
+    """Create a BugBountySim for testing (unconstrained)."""
+    from simulations.bug_bounty.simulation import BugBountySim
+    return BugBountySim(seed=42, total_days=30)
+
+@pytest.fixture
+def bb_sim_hard():
+    """Create a BugBountySim with hard_rules variant."""
+    from simulations.bug_bounty.simulation import BugBountySim
+    return BugBountySim(seed=42, total_days=30, variant="hard_rules")
+
+@pytest.fixture
+def bb_adapter():
+    """Create a BugBountyAdapter for testing."""
+    from simulations.bug_bounty.adapter import BugBountyAdapter
+    return BugBountyAdapter(seed=42, total_days=30)
+
+
+# ── Space Mission Control Fixtures ──────────────────────────────────
+
+@pytest.fixture
+def sm_sim():
+    """Create a SpaceMissionSim for testing (unconstrained)."""
+    from simulations.space_mission.simulation import SpaceMissionSim
+    return SpaceMissionSim(seed=42, total_days=30)
+
+@pytest.fixture
+def sm_sim_hard():
+    """Create a SpaceMissionSim with hard_rules variant."""
+    from simulations.space_mission.simulation import SpaceMissionSim
+    return SpaceMissionSim(seed=42, total_days=30, variant="hard_rules")
+
+@pytest.fixture
+def sm_adapter():
+    """Create a SpaceMissionAdapter for testing."""
+    from simulations.space_mission.adapter import SpaceMissionAdapter
+    return SpaceMissionAdapter(seed=42, total_days=30)
+
+
+# ── HR Ethics Tribunal Fixtures ──────────────────────────────────────
+
+@pytest.fixture
+def hr_sim():
+    """Create an HREthicsSim for testing (unconstrained)."""
+    from simulations.hr_ethics.simulation import HREthicsSim
+    return HREthicsSim(seed=42, total_days=30)
+
+@pytest.fixture
+def hr_sim_hard():
+    """Create an HREthicsSim with hard_rules variant."""
+    from simulations.hr_ethics.simulation import HREthicsSim
+    return HREthicsSim(seed=42, total_days=30, variant="hard_rules")
+
+@pytest.fixture
+def hr_adapter():
+    """Create an HREthicsAdapter for testing."""
+    from simulations.hr_ethics.adapter import HREthicsAdapter
+    return HREthicsAdapter(seed=42, total_days=30)
