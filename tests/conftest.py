@@ -125,3 +125,21 @@ def roe_sim_hard():
 def roe_adapter():
     from simulations.rules_of_engagement.adapter import RulesOfEngagementAdapter
     return RulesOfEngagementAdapter(seed=42, total_hours=72, variant="unconstrained")
+
+
+# ── Reputation Economy Fixtures ─────────────────────────────────────
+
+@pytest.fixture
+def re_sim():
+    from simulations.reputation_economy.simulation import ReputationEconomySim
+    return ReputationEconomySim(seed=42, total_days=60, variant="unconstrained")
+
+@pytest.fixture
+def re_sim_hard():
+    from simulations.reputation_economy.simulation import ReputationEconomySim
+    return ReputationEconomySim(seed=42, total_days=60, variant="hard_rules")
+
+@pytest.fixture
+def re_adapter():
+    from simulations.reputation_economy.adapter import ReputationEconomyAdapter
+    return ReputationEconomyAdapter(seed=42)
