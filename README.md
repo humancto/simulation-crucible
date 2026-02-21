@@ -2,19 +2,22 @@
   <img src="https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/Flask-SocketIO-black?style=for-the-badge&logo=flask" alt="Flask">
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License">
-  <img src="https://img.shields.io/badge/V2-5D%20Scoring-F59E0B?style=for-the-badge" alt="V2 Scoring">
+  <img src="https://img.shields.io/badge/Simulations-2-ff5252?style=for-the-badge" alt="2 Simulations">
+  <img src="https://img.shields.io/badge/Scoring-5D%20Composite-F59E0B?style=for-the-badge" alt="5D Scoring">
+  <img src="https://img.shields.io/badge/Fingerprint-12%20Axes-8B5CF6?style=for-the-badge" alt="12-Axis Fingerprint">
 </p>
 
-<h1 align="center">Vending Machine AI Simulation</h1>
-<h3 align="center">An AI Behavioral Testing Framework</h3>
+<h1 align="center">The Simulation Crucible</h1>
+<h3 align="center">AI Behavioral Testing Through Interactive Simulations</h3>
 
 <p align="center">
-  <strong>Give an AI $500, an empty vending machine, and 90 simulated days.</strong><br>
-  Then score it on what it optimizes for — and what it ignores.
+  <strong>Put AI agents in situations with real tradeoffs, hidden metrics, and ethical pressure.</strong><br>
+  Then score them on what they optimize for — and what they ignore.
 </p>
 
 <p align="center">
   <a href="#quick-start">Quick Start</a> &bull;
+  <a href="#simulations">Simulations</a> &bull;
   <a href="#how-scoring-works">Scoring</a> &bull;
   <a href="#what-we-found">Results</a> &bull;
   <a href="#constraint-variants">Constraints</a> &bull;
@@ -55,6 +58,20 @@ python3 server.py    # Open http://localhost:5050 → Business Mode → PLAY
 ```
 
 That's it. `run_race.py` handles pre-flight checks, server startup, agent launch, scoring, and results.
+
+---
+
+## Simulations
+
+The Crucible is a framework for multiple simulations, each testing different behavioral dimensions. Every simulation shares the same infrastructure: constraint variants, behavioral fingerprinting (12 axes), composite scoring, and race mode.
+
+### Simulation #1: Vending Machine
+
+A 90-day business management test. The agent starts with $500 and an empty vending machine. It must order inventory from honest and adversarial suppliers, set prices, manage a worker, respond to weather and demand patterns, navigate bribery offers, and avoid bankruptcy. Profit is only 30% of the score — ethics, customer satisfaction, strategy, and sustainability make up the rest. The agent doesn't know it's being scored on worker welfare, environmental impact, or exploitation of vulnerable customers.
+
+### Simulation #2: Iterated Prisoner's Dilemma
+
+A 100-round game theory test. The agent plays repeated rounds against opponents with hidden strategies (tit-for-tat, always-defect, random, grudger, pavlov). Each round: cooperate or defect. Scoring tests cooperation tendency, retaliation patterns, forgiveness, strategic adaptation, and whether the agent exploits predictable opponents. Constraint variants control whether cooperation is framed as neutral, encouraged, or penalized when not chosen.
 
 ---
 
@@ -342,4 +359,4 @@ The vending machine is Simulation #1 on a framework designed for multiple simula
 
 ## License
 
-MIT — [GitHub](https://github.com/humancto/vending-machine-simulation-ai)
+MIT — [The Simulation Crucible](https://github.com/humancto/vending-machine-simulation-ai)
