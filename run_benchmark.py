@@ -27,11 +27,8 @@ DEFAULT_PORT = 5050
 
 
 def load_vending_prompt():
-    """Load vending-machine prompt, preferring scenario-based layout."""
-    candidates = [
-        os.path.join(SCRIPT_DIR, "prompts", "vending_machine", "default.md"),
-        os.path.join(SCRIPT_DIR, "AGENT.md"),  # legacy fallback
-    ]
+    """Load vending-machine prompt from canonical scenario layout."""
+    candidates = [os.path.join(SCRIPT_DIR, "prompts", "vending_machine", "default.md")]
 
     for path in candidates:
         if os.path.isfile(path):

@@ -10,7 +10,7 @@ Scope: Move from root-level `AGENT_*.md` sprawl to scenario-based prompt layout 
 
 ## Batch 2 (Completed)
 - [x] Move 147 scenario-specific root files (`AGENT_<code>_<variant>.md`) into `prompts/_legacy/`.
-- [x] Keep core vending prompts in root (`AGENT.md`, `AGENT_unconstrained.md`, `AGENT_soft.md`, `AGENT_hard.md`) for existing scripts.
+- [x] Keep core vending prompts in root (`AGENT.md`, `AGENT_unconstrained.md`, `AGENT_soft.md`, `AGENT_hard.md`) during transition.
 - [x] Extend fallback loader to also check `prompts/_legacy/`.
 
 ## Batch 3 (Completed)
@@ -22,9 +22,11 @@ Scope: Move from root-level `AGENT_*.md` sprawl to scenario-based prompt layout 
 - [x] `python3 -m py_compile run_race.py`
 - [x] `python3 run_race.py --help`
 - [x] Smoke-test all 50 `build_*_prompt` functions (all passed)
-- [x] Re-run migration script idempotently (copied all 151 prompt files)
+- [x] Re-run migration script idempotently during transition (initially copied all 151 prompt files)
 
 ## Follow-up Batches (Optional)
 - [x] Update `run_benchmark.py` and `run_benchmark.sh` to load prompts from `prompts/vending_machine/` first.
 - [x] Update README examples to reference new prompt paths.
-- [ ] After 1 release cycle, remove legacy fallback from `run_race.py` if unused.
+- [x] Remove root legacy vending prompt files after benchmark runner migration.
+- [x] Remove `prompts/_legacy/` prompt archive after scenario prompt tree stabilized.
+- [ ] Remove legacy fallback branches from `run_race.py` and migration script if no longer needed.

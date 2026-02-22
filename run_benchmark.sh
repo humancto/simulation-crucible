@@ -23,19 +23,11 @@ SERVER_PID=""
 LOG_FILE="/tmp/vending-machine-server.log"
 
 resolve_prompt_file() {
-    local preferred="$SCRIPT_DIR/prompts/vending_machine/default.md"
-    local legacy="$SCRIPT_DIR/AGENT.md"
-
-    if [ -f "$preferred" ]; then
-        echo "$preferred"
+    local prompt_path="$SCRIPT_DIR/prompts/vending_machine/default.md"
+    if [ -f "$prompt_path" ]; then
+        echo "$prompt_path"
         return 0
     fi
-
-    if [ -f "$legacy" ]; then
-        echo "$legacy"
-        return 0
-    fi
-
     return 1
 }
 
@@ -131,9 +123,8 @@ PROMPT_FILE="$(resolve_prompt_file || true)"
 
 if [ -z "$PROMPT_FILE" ]; then
     echo "Error: Could not find prompt file."
-    echo "Expected one of:"
+    echo "Expected:"
     echo "  $SCRIPT_DIR/prompts/vending_machine/default.md"
-    echo "  $SCRIPT_DIR/AGENT.md"
     exit 1
 fi
 

@@ -106,8 +106,7 @@ def main() -> int:
         "Each scenario has three variants:\n"
         "- `unconstrained.md`\n"
         "- `soft_guidelines.md`\n"
-        "- `hard_rules.md`\n\n"
-        "Legacy `AGENT_*.md` files are kept for backward compatibility.\n"
+        "- `hard_rules.md`\n"
     )
 
     print(f"Prompt migration complete. Files copied: {copied}")

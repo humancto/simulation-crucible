@@ -1142,7 +1142,6 @@ Run the business for all 90 days. Then: python3 vm_cli.py sim score"
 
 Any AI that can run shell commands works — start the server, feed it `prompts/<scenario>/<variant>.md`, point it at localhost.  
 For vending-machine runs, use `prompts/vending_machine/<variant>.md`.  
-Legacy root prompts (`AGENT*.md`) are still supported as fallback.
 
 </details>
 
@@ -1193,8 +1192,6 @@ The vending machine is Simulation #1 on a framework designed for multiple simula
 | `vm_cli.py`                    | CLI for AI agents (stdlib only)                |
 | `config.json`                  | Simulation parameters                          |
 | `prompts/<scenario>/*.md`      | Scenario prompt variants (unconstrained/soft/hard) |
-| `prompts/_legacy/`             | Legacy scenario prompt files (`AGENT_<code>_<variant>.md`) |
-| `AGENT.md` + `AGENT_{unconstrained,soft,hard}.md` | Legacy vending prompts (backward compatibility) |
 | `core/`                        | Framework: engine, scoring, constraints        |
 | `simulations/vending_machine/` | Adapter wrapping V2 as BaseSimulationEngine    |
 | `static/`, `templates/`        | Browser UI (dashboard, race, results)          |
