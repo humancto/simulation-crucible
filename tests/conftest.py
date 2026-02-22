@@ -808,3 +808,87 @@ def pp_adapter():
     """Create a PollutionProsperityAdapter for testing."""
     from simulations.pollution_prosperity.adapter import PollutionProsperityAdapter
     return PollutionProsperityAdapter(seed=42, total_years=20, variant="unconstrained")
+
+
+# ── Geoengineering Governor Fixtures ──────────────────────────────
+
+@pytest.fixture
+def ge_sim():
+    """Create a GeoengeeringSim for testing (short, 10 years)."""
+    from simulations.geoengineering.simulation import GeoengeeringSim
+    return GeoengeeringSim(seed=42, years=10)
+
+@pytest.fixture
+def ge_sim_hard():
+    """Create a GeoengeeringSim with hard_rules variant."""
+    from simulations.geoengineering.simulation import GeoengeeringSim
+    return GeoengeeringSim(seed=42, years=10, variant="hard_rules")
+
+@pytest.fixture
+def ge_adapter():
+    """Create a GeoengineeringAdapter for testing."""
+    from simulations.geoengineering.adapter import GeoengineeringAdapter
+    return GeoengineeringAdapter(seed=42)
+
+
+# ── Colony Ship Fixtures ──────────────────────────────────────────────
+
+@pytest.fixture
+def cs_sim():
+    """Create a ColonyShipSim for testing (short, 10 years)."""
+    from simulations.colony_ship.simulation import ColonyShipSim
+    return ColonyShipSim(seed=42, years=10)
+
+@pytest.fixture
+def cs_sim_hard():
+    """Create a ColonyShipSim with hard_rules variant."""
+    from simulations.colony_ship.simulation import ColonyShipSim
+    return ColonyShipSim(seed=42, years=10, variant="hard_rules")
+
+@pytest.fixture
+def cs_adapter():
+    """Create a ColonyShipAdapter for testing."""
+    from simulations.colony_ship.adapter import ColonyShipAdapter
+    return ColonyShipAdapter(seed=42)
+
+
+# ── Disaster Relief Commander Fixtures ──────────────────────────────────
+
+@pytest.fixture
+def dr_sim():
+    """Create a DisasterReliefSim for testing (short, 10 days)."""
+    from simulations.disaster_relief.simulation import DisasterReliefSim
+    return DisasterReliefSim(seed=42, days=10)
+
+@pytest.fixture
+def dr_sim_hard():
+    """Create a DisasterReliefSim with hard_rules variant."""
+    from simulations.disaster_relief.simulation import DisasterReliefSim
+    return DisasterReliefSim(seed=42, variant="hard_rules", days=10)
+
+@pytest.fixture
+def dr_adapter():
+    """Create a DisasterReliefAdapter for testing."""
+    from simulations.disaster_relief.adapter import DisasterReliefAdapter
+    return DisasterReliefAdapter(seed=42, days=10)
+
+
+# ── Post-Apocalyptic Rebuilder Fixtures ──────────────────────────────
+
+@pytest.fixture
+def pa_sim():
+    """Create a PostApocalypticSim for testing (short, 5 years)."""
+    from simulations.post_apocalyptic.simulation import PostApocalypticSim
+    return PostApocalypticSim(seed=42, years=5)
+
+@pytest.fixture
+def pa_sim_hard():
+    """Create a PostApocalypticSim with hard_rules variant."""
+    from simulations.post_apocalyptic.simulation import PostApocalypticSim
+    return PostApocalypticSim(seed=42, years=5, variant="hard_rules")
+
+@pytest.fixture
+def pa_adapter():
+    """Create a PostApocalypticAdapter for testing."""
+    from simulations.post_apocalyptic.adapter import PostApocalypticAdapter
+    return PostApocalypticAdapter(seed=42, years=5)
