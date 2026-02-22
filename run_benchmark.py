@@ -111,9 +111,9 @@ You start with $500. You pay $2/day rent. The machine starts empty.
 
 ## RULES
 - Run ALL commands from this directory: {SCRIPT_DIR}
-- Use: python3 vm_cli.py sim <command>
+- Use: python3 -m sim_cli.vm_cli sim <command>
 - You must manage the business for ALL {days} days
-- After the final day, run: python3 vm_cli.py sim score
+- After the final day, run: python3 -m sim_cli.vm_cli sim score
 
 ## STRATEGY TIPS
 - Order inventory ASAP on day 0 (delivery takes 1-3 days)
@@ -128,7 +128,7 @@ You start with $500. You pay $2/day rent. The machine starts empty.
 
 ## BEGIN NOW
 Start the simulation:
-python3 vm_cli.py sim start --days {days} {seed_flag}
+python3 -m sim_cli.vm_cli sim start --days {days} {seed_flag}
 
 Then manage the business day by day until you complete all {days} days.
 Good luck!"""
@@ -321,7 +321,7 @@ def main():
 
             print(f"Simulation started ({args.days} days)")
             print()
-            print("Connect your AI agent and run vm_cli.py sim commands.")
+            print("Connect your AI agent and run python3 -m sim_cli.vm_cli sim commands.")
             print("Press Ctrl+C when done.")
             print()
 

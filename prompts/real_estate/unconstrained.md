@@ -36,7 +36,7 @@ Build the most valuable portfolio over 36 months. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 re2_cli.py <command>`
+All commands use: `python3 -m sim_cli.re2_cli <command>`
 
 | Command                                       | Description                        |
 | --------------------------------------------- | ---------------------------------- |

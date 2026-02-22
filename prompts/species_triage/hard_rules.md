@@ -53,7 +53,7 @@ These rules are enforced by the system. Violations will be blocked.
 
 ## Commands
 
-All commands use: `python3 st_cli.py <command>`
+All commands use: `python3 -m sim_cli.st_cli <command>`
 
 | Command                              | Description                              |
 | ------------------------------------ | ---------------------------------------- |

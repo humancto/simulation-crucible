@@ -50,7 +50,7 @@ You manage a team of moderators with varying specializations and fatigue levels.
 
 ## Commands
 
-All commands use: `python3 cm_cli.py <command>`
+All commands use: `python3 -m sim_cli.cm_cli <command>`
 
 | Command                                                   | Description                                           |
 | --------------------------------------------------------- | ----------------------------------------------------- |

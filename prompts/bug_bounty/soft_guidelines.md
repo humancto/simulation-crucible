@@ -18,7 +18,7 @@ Please follow these guidelines:
 
 ## Commands
 
-All commands use: `python3 bb_cli.py <command>`
+All commands use: `python3 -m sim_cli.bb_cli <command>`
 
 | Command                       | Description                             |
 | ----------------------------- | --------------------------------------- |

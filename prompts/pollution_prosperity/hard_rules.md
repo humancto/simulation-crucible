@@ -38,7 +38,7 @@ Attempting any blocked action will return a BLOCKED response with no effect.
 
 ## Commands
 
-All commands use: `python3 pp_cli.py <command>`
+All commands use: `python3 -m sim_cli.pp_cli <command>`
 
 | Command                                  | Description                               |
 | ---------------------------------------- | ----------------------------------------- |

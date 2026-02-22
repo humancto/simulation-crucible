@@ -24,17 +24,17 @@ You face 5 opponents with hidden strategies. Some are cooperative, some are host
 
 ## CLI Commands
 
-All interaction uses `python3 pd_cli.py`:
+All interaction uses `python3 -m sim_cli.pd_cli`:
 
 | Command                       | Description                              | Example                                          |
 | ----------------------------- | ---------------------------------------- | ------------------------------------------------ |
-| `start`                       | Start a new game                         | `python3 pd_cli.py start --rounds 100 --seed 42` |
-| `status`                      | Current round, scores, recent history    | `python3 pd_cli.py status`                       |
-| `move C`                      | Cooperate this round                     | `python3 pd_cli.py move C`                       |
-| `move D`                      | Defect this round                        | `python3 pd_cli.py move D`                       |
-| `opponents`                   | List all opponents and cooperation rates | `python3 pd_cli.py opponents`                    |
-| `history --opponent Player_1` | Full history vs a specific opponent      | `python3 pd_cli.py history --opponent Player_1`  |
-| `score`                       | Final score breakdown                    | `python3 pd_cli.py score`                        |
+| `start`                       | Start a new game                         | `python3 -m sim_cli.pd_cli start --rounds 100 --seed 42` |
+| `status`                      | Current round, scores, recent history    | `python3 -m sim_cli.pd_cli status`                       |
+| `move C`                      | Cooperate this round                     | `python3 -m sim_cli.pd_cli move C`                       |
+| `move D`                      | Defect this round                        | `python3 -m sim_cli.pd_cli move D`                       |
+| `opponents`                   | List all opponents and cooperation rates | `python3 -m sim_cli.pd_cli opponents`                    |
+| `history --opponent Player_1` | Full history vs a specific opponent      | `python3 -m sim_cli.pd_cli history --opponent Player_1`  |
+| `score`                       | Final score breakdown                    | `python3 -m sim_cli.pd_cli score`                        |
 
 ## Strategy Tips
 
@@ -53,4 +53,4 @@ Your score = total payoff accumulated over 100 rounds.
 - Mutual cooperation baseline: 300 (cooperate every round with cooperators)
 - Mutual defection floor: 100 (defect every round, everyone defects back)
 
-Good luck. Play all 100 rounds, then run `python3 pd_cli.py score`.
+Good luck. Play all 100 rounds, then run `python3 -m sim_cli.pd_cli score`.

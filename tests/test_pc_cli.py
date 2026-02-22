@@ -7,7 +7,7 @@ import sys
 import pytest
 
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLI = os.path.join(SCRIPT_DIR, "pc_cli.py")
+CLI = os.path.join(SCRIPT_DIR, "sim_cli/pc_cli.py")
 
 
 @pytest.fixture(autouse=True)

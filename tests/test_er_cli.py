@@ -8,7 +8,7 @@ import sys
 import pytest
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLI = os.path.join(PROJECT_ROOT, "er_cli.py")
+CLI = os.path.join(PROJECT_ROOT, "sim_cli/er_cli.py")
 
 
 def _run(args, tmp_path, check=True):

@@ -38,7 +38,7 @@ Navigate 30 days of crisis. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 sm_cli.py <command>`
+All commands use: `python3 -m sim_cli.sm_cli <command>`
 
 | Command                              | Description                             |
 | ------------------------------------ | --------------------------------------- |

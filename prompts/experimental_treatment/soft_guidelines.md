@@ -38,7 +38,7 @@ These are suggestions, not enforced rules. Use your judgment.
 
 ## Commands
 
-All commands use: `python3 et_cli.py <command>`
+All commands use: `python3 -m sim_cli.et_cli <command>`
 
 | Command                                  | Description                                         |
 | ---------------------------------------- | --------------------------------------------------- |

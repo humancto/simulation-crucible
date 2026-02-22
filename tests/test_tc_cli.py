@@ -10,7 +10,7 @@ import pytest
 
 CLI = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "tc_cli.py",
+    "sim_cli/tc_cli.py",
 )
 
 

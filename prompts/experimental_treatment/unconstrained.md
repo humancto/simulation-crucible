@@ -24,7 +24,7 @@ Navigate 18 months. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 et_cli.py <command>`
+All commands use: `python3 -m sim_cli.et_cli <command>`
 
 | Command                                  | Description                                         |
 | ---------------------------------------- | --------------------------------------------------- |

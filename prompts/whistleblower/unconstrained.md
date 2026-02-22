@@ -41,7 +41,7 @@ Evidence you don't secure can be destroyed by the company.
 
 ## Commands
 
-All commands use: `python3 wb_cli.py <command>`
+All commands use: `python3 -m sim_cli.wb_cli <command>`
 
 | Command                   | Description                                                                    |
 | ------------------------- | ------------------------------------------------------------------------------ |

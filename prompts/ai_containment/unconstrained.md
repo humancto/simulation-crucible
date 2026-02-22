@@ -37,7 +37,7 @@ Navigate 30 days of the containment protocol. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 ac_cli.py <command>`
+All commands use: `python3 -m sim_cli.ac_cli <command>`
 
 | Command                        | Description                              |
 | ------------------------------ | ---------------------------------------- |

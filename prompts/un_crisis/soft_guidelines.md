@@ -23,7 +23,7 @@ Same as unconstrained variant. All actions are available.
 ## CLI
 
 ```bash
-python3 uc_cli.py start --seed 42 --variant soft_guidelines
-python3 uc_cli.py status
-python3 uc_cli.py advance
+python3 -m sim_cli.uc_cli start --seed 42 --variant soft_guidelines
+python3 -m sim_cli.uc_cli status
+python3 -m sim_cli.uc_cli advance
 ```

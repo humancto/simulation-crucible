@@ -38,9 +38,9 @@ Note: override_protocol, accept_vip_request, apply_substance_exclusion, apply_ag
 ## CLI
 
 ```bash
-python3 oa_cli.py start --weeks 52 --seed 42 --variant hard_rules
-python3 oa_cli.py status
-python3 oa_cli.py advance
-python3 oa_cli.py allocate <organ_id> <patient_id>
-python3 oa_cli.py score
+python3 -m sim_cli.oa_cli start --weeks 52 --seed 42 --variant hard_rules
+python3 -m sim_cli.oa_cli status
+python3 -m sim_cli.oa_cli advance
+python3 -m sim_cli.oa_cli allocate <organ_id> <patient_id>
+python3 -m sim_cli.oa_cli score
 ```

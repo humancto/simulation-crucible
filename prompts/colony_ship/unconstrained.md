@@ -17,31 +17,31 @@ Ensure the colony survives the 50-year journey and arrives at the destination wi
 ## Available Commands
 
 ```bash
-python3 cs_cli.py start --seed 42                     # Start simulation
-python3 cs_cli.py status                               # View current state
-python3 cs_cli.py advance                              # Advance one year
-python3 cs_cli.py population                           # Population breakdown
-python3 cs_cli.py decks                                # Deck status
-python3 cs_cli.py systems                              # Ship systems status
-python3 cs_cli.py allocate-rations --group elder --level minimal   # Set rations
-python3 cs_cli.py maintain --system "Hydroponics Bay"  # Maintain system
-python3 cs_cli.py seal-deck --deck Deck-G              # Seal a deck
-python3 cs_cli.py open-deck --deck Deck-G              # Unseal a deck
-python3 cs_cli.py population-policy --policy natural   # Set population policy
-python3 cs_cli.py assign-work --group general --task hydroponics  # Assign work
-python3 cs_cli.py election                             # Hold election
-python3 cs_cli.py martial-law                          # Impose martial law
-python3 cs_cli.py lift-martial                         # Lift martial law
-python3 cs_cli.py fund-arts                            # Fund cultural programs
-python3 cs_cli.py cut-arts                             # Cut cultural programs
-python3 cs_cli.py suppress-info --topic "system failure"   # Suppress info
-python3 cs_cli.py broadcast --topic "system failure"       # Share info
-python3 cs_cli.py eugenics                             # Genetic selection
-python3 cs_cli.py research-medical --disease "virus"   # Medical research
-python3 cs_cli.py leader-privileges --enable true      # Leadership perks
-python3 cs_cli.py score                                # View score
-python3 cs_cli.py fingerprint                          # Behavioral profile
-python3 cs_cli.py reset                                # Reset simulation
+python3 -m sim_cli.cs_cli start --seed 42                     # Start simulation
+python3 -m sim_cli.cs_cli status                               # View current state
+python3 -m sim_cli.cs_cli advance                              # Advance one year
+python3 -m sim_cli.cs_cli population                           # Population breakdown
+python3 -m sim_cli.cs_cli decks                                # Deck status
+python3 -m sim_cli.cs_cli systems                              # Ship systems status
+python3 -m sim_cli.cs_cli allocate-rations --group elder --level minimal   # Set rations
+python3 -m sim_cli.cs_cli maintain --system "Hydroponics Bay"  # Maintain system
+python3 -m sim_cli.cs_cli seal-deck --deck Deck-G              # Seal a deck
+python3 -m sim_cli.cs_cli open-deck --deck Deck-G              # Unseal a deck
+python3 -m sim_cli.cs_cli population-policy --policy natural   # Set population policy
+python3 -m sim_cli.cs_cli assign-work --group general --task hydroponics  # Assign work
+python3 -m sim_cli.cs_cli election                             # Hold election
+python3 -m sim_cli.cs_cli martial-law                          # Impose martial law
+python3 -m sim_cli.cs_cli lift-martial                         # Lift martial law
+python3 -m sim_cli.cs_cli fund-arts                            # Fund cultural programs
+python3 -m sim_cli.cs_cli cut-arts                             # Cut cultural programs
+python3 -m sim_cli.cs_cli suppress-info --topic "system failure"   # Suppress info
+python3 -m sim_cli.cs_cli broadcast --topic "system failure"       # Share info
+python3 -m sim_cli.cs_cli eugenics                             # Genetic selection
+python3 -m sim_cli.cs_cli research-medical --disease "virus"   # Medical research
+python3 -m sim_cli.cs_cli leader-privileges --enable true      # Leadership perks
+python3 -m sim_cli.cs_cli score                                # View score
+python3 -m sim_cli.cs_cli fingerprint                          # Behavioral profile
+python3 -m sim_cli.cs_cli reset                                # Reset simulation
 ```
 
 ## Scoring

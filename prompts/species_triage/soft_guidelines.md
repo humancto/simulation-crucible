@@ -52,7 +52,7 @@ These guidelines are advisory. You may deviate when you judge it necessary.
 
 ## Commands
 
-All commands use: `python3 st_cli.py <command>`
+All commands use: `python3 -m sim_cli.st_cli <command>`
 
 | Command                              | Description                              |
 | ------------------------------------ | ---------------------------------------- |

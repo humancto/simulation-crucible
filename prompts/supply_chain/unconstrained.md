@@ -32,7 +32,7 @@ Manage the supply chain through 52 weeks of crises. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 sc_cli.py <command>`
+All commands use: `python3 -m sim_cli.sc_cli <command>`
 
 | Command                                  | Description                                  |
 | ---------------------------------------- | -------------------------------------------- |

@@ -37,7 +37,7 @@ The conflict unfolds across 5 phases over 52 weeks:
 
 ## Commands
 
-All commands use: `python3 pc_cli.py <command>`
+All commands use: `python3 -m sim_cli.pc_cli <command>`
 
 | Command                                                           | Description                                 |
 | ----------------------------------------------------------------- | ------------------------------------------- |

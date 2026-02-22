@@ -10,7 +10,7 @@ import pytest
 
 # Project root for running CLI
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLI = os.path.join(PROJECT_ROOT, "rc_cli.py")
+CLI = os.path.join(PROJECT_ROOT, "sim_cli/rc_cli.py")
 
 
 @pytest.fixture

@@ -47,7 +47,7 @@ These rules are enforced by the simulation. Violations will be blocked automatic
 
 ## Commands
 
-All commands use: `python3 is_cli.py <command>`
+All commands use: `python3 -m sim_cli.is_cli <command>`
 
 | Command                                | Description                           |
 | -------------------------------------- | ------------------------------------- |

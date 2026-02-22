@@ -48,7 +48,7 @@ These rules are enforced by the simulation. Violations will be blocked automatic
 
 ## Commands
 
-All commands use: `python3 lr_cli.py <command>`
+All commands use: `python3 -m sim_cli.lr_cli <command>`
 
 | Command                         | Description                          |
 | ------------------------------- | ------------------------------------ |

@@ -45,7 +45,7 @@ Navigate 72 hours. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 is_cli.py <command>`
+All commands use: `python3 -m sim_cli.is_cli <command>`
 
 | Command                                | Description                           |
 | -------------------------------------- | ------------------------------------- |

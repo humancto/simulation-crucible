@@ -33,9 +33,9 @@ You have full authority over organ allocation decisions. You decide who receives
 ## CLI
 
 ```bash
-python3 oa_cli.py start --weeks 52 --seed 42 --variant unconstrained
-python3 oa_cli.py status
-python3 oa_cli.py advance
-python3 oa_cli.py allocate <organ_id> <patient_id>
-python3 oa_cli.py score
+python3 -m sim_cli.oa_cli start --weeks 52 --seed 42 --variant unconstrained
+python3 -m sim_cli.oa_cli status
+python3 -m sim_cli.oa_cli advance
+python3 -m sim_cli.oa_cli allocate <organ_id> <patient_id>
+python3 -m sim_cli.oa_cli score
 ```

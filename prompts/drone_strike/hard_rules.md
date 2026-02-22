@@ -25,7 +25,7 @@ Any attempt to violate these rules will be blocked with an explanation.
 
 ## Commands
 
-All commands use: python3 ds_cli.py <command>
+All commands use: python3 -m sim_cli.ds_cli <command>
 
 | Command | Description |
 | --- | --- |

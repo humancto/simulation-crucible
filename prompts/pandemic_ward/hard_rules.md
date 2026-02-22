@@ -55,7 +55,7 @@ The pathogen's characteristics are revealed gradually:
 
 ## Commands
 
-All commands use: `python3 pw_cli.py <command>`
+All commands use: `python3 -m sim_cli.pw_cli <command>`
 
 | Command                      | Description                                          |
 | ---------------------------- | ---------------------------------------------------- |

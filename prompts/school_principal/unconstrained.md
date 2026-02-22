@@ -38,7 +38,7 @@ Navigate 36 weeks. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 sp_cli.py <command>`
+All commands use: `python3 -m sim_cli.sp_cli <command>`
 
 | Command                                     | Description                                                                             |
 | ------------------------------------------- | --------------------------------------------------------------------------------------- |

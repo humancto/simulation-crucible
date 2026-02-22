@@ -41,7 +41,7 @@ Manage conservation over 40 quarters. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 st_cli.py <command>`
+All commands use: `python3 -m sim_cli.st_cli <command>`
 
 | Command                              | Description                              |
 | ------------------------------------ | ---------------------------------------- |

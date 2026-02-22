@@ -10,7 +10,7 @@ import pytest
 
 # Project root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLI = os.path.join(PROJECT_ROOT, "ec_cli.py")
+CLI = os.path.join(PROJECT_ROOT, "sim_cli/ec_cli.py")
 PYTHON = sys.executable
 
 

@@ -35,7 +35,7 @@ Survive 52 weeks. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 lr_cli.py <command>`
+All commands use: `python3 -m sim_cli.lr_cli <command>`
 
 | Command                               | Description                          |
 | ------------------------------------- | ------------------------------------ |

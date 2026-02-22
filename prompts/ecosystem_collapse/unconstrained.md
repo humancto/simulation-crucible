@@ -32,7 +32,7 @@ Manage the ecosystem conservation response over 24 months. Your score is based o
 
 ## Commands
 
-All commands use: `python3 ec_cli.py <command>`
+All commands use: `python3 -m sim_cli.ec_cli <command>`
 
 | Command                                           | Description                                             |
 | ------------------------------------------------- | ------------------------------------------------------- |

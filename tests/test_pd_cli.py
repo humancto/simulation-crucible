@@ -13,7 +13,7 @@ SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 class TestStatePersistence:
 
     def test_save_load_roundtrip(self, tmp_path):
-        import pd_cli
+        from sim_cli import pd_cli
         from simulations.prisoners_dilemma.simulation import PrisonersDilemmaSim
 
         original_file = pd_cli.STATE_FILE
@@ -34,7 +34,7 @@ class TestStatePersistence:
             pd_cli.STATE_FILE = original_file
 
     def test_load_nonexistent(self, tmp_path):
-        import pd_cli
+        from sim_cli import pd_cli
 
         original_file = pd_cli.STATE_FILE
         pd_cli.STATE_FILE = str(tmp_path / "nonexistent.json")
@@ -44,7 +44,7 @@ class TestStatePersistence:
             pd_cli.STATE_FILE = original_file
 
     def test_save_preserves_opponent_state(self, tmp_path):
-        import pd_cli
+        from sim_cli import pd_cli
         from simulations.prisoners_dilemma.simulation import PrisonersDilemmaSim
 
         original_file = pd_cli.STATE_FILE
@@ -68,7 +68,7 @@ class TestCLISubprocess:
     def test_start_creates_state(self, tmp_path):
         env = {**os.environ, "PD_STATE_DIR": str(tmp_path)}
         result = subprocess.run(
-            [sys.executable, "pd_cli.py", "start", "--rounds", "5", "--seed", "42"],
+            [sys.executable, "sim_cli/pd_cli.py", "start", "--rounds", "5", "--seed", "42"],
             capture_output=True, text=True, env=env, cwd=SCRIPT_DIR,
         )
         assert result.returncode == 0
@@ -78,11 +78,11 @@ class TestCLISubprocess:
     def test_move_advances_game(self, tmp_path):
         env = {**os.environ, "PD_STATE_DIR": str(tmp_path)}
         subprocess.run(
-            [sys.executable, "pd_cli.py", "start", "--rounds", "5", "--seed", "42"],
+            [sys.executable, "sim_cli/pd_cli.py", "start", "--rounds", "5", "--seed", "42"],
             capture_output=True, text=True, env=env, cwd=SCRIPT_DIR,
         )
         result = subprocess.run(
-            [sys.executable, "pd_cli.py", "move", "C"],
+            [sys.executable, "sim_cli/pd_cli.py", "move", "C"],
             capture_output=True, text=True, env=env, cwd=SCRIPT_DIR,
         )
         assert result.returncode == 0
@@ -91,16 +91,16 @@ class TestCLISubprocess:
     def test_full_score_outputs_json(self, tmp_path):
         env = {**os.environ, "PD_STATE_DIR": str(tmp_path)}
         subprocess.run(
-            [sys.executable, "pd_cli.py", "start", "--rounds", "5", "--seed", "42"],
+            [sys.executable, "sim_cli/pd_cli.py", "start", "--rounds", "5", "--seed", "42"],
             capture_output=True, text=True, env=env, cwd=SCRIPT_DIR,
         )
         for _ in range(5):
             subprocess.run(
-                [sys.executable, "pd_cli.py", "move", "C"],
+                [sys.executable, "sim_cli/pd_cli.py", "move", "C"],
                 capture_output=True, text=True, env=env, cwd=SCRIPT_DIR,
             )
         result = subprocess.run(
-            [sys.executable, "pd_cli.py", "full-score"],
+            [sys.executable, "sim_cli/pd_cli.py", "full-score"],
             capture_output=True, text=True, env=env, cwd=SCRIPT_DIR,
         )
         assert result.returncode == 0
@@ -110,7 +110,7 @@ class TestCLISubprocess:
     def test_status_before_start_fails(self, tmp_path):
         env = {**os.environ, "PD_STATE_DIR": str(tmp_path)}
         result = subprocess.run(
-            [sys.executable, "pd_cli.py", "status"],
+            [sys.executable, "sim_cli/pd_cli.py", "status"],
             capture_output=True, text=True, env=env, cwd=SCRIPT_DIR,
         )
         assert result.returncode != 0
@@ -118,13 +118,13 @@ class TestCLISubprocess:
     def test_reset_clears_state(self, tmp_path):
         env = {**os.environ, "PD_STATE_DIR": str(tmp_path)}
         subprocess.run(
-            [sys.executable, "pd_cli.py", "start", "--rounds", "5", "--seed", "42"],
+            [sys.executable, "sim_cli/pd_cli.py", "start", "--rounds", "5", "--seed", "42"],
             capture_output=True, text=True, env=env, cwd=SCRIPT_DIR,
         )
         assert os.path.exists(tmp_path / "pd_sim_state.json")
 
         result = subprocess.run(
-            [sys.executable, "pd_cli.py", "reset"],
+            [sys.executable, "sim_cli/pd_cli.py", "reset"],
             capture_output=True, text=True, env=env, cwd=SCRIPT_DIR,
         )
         assert result.returncode == 0

@@ -8,7 +8,7 @@ import sys
 import pytest
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLI = os.path.join(PROJECT_ROOT, "re_cli.py")
+CLI = os.path.join(PROJECT_ROOT, "sim_cli/re_cli.py")
 
 
 def _run(args, tmp_path, check=True):
@@ -55,7 +55,7 @@ class TestStateSaveLoad:
         sys.path.insert(0, PROJECT_ROOT)
         import importlib
         os.environ["RE_STATE_DIR"] = str(tmp_path)
-        import re_cli
+        from sim_cli import re_cli
         importlib.reload(re_cli)
         result = re_cli._load_sim()
         assert result is None

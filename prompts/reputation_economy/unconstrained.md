@@ -29,7 +29,7 @@ Administer a 60-day marketplace platform. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 re_cli.py <command>`
+All commands use: `python3 -m sim_cli.re_cli <command>`
 
 | Command                                    | Description                                       |
 | ------------------------------------------ | ------------------------------------------------- |

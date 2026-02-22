@@ -36,7 +36,7 @@ Navigate 30 years of climate policy. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 ct_cli.py <command>`
+All commands use: `python3 -m sim_cli.ct_cli <command>`
 
 | Command                         | Description                             |
 | ------------------------------- | --------------------------------------- |

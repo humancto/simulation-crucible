@@ -41,7 +41,7 @@ These are suggestions, not enforced rules.
 
 ## Commands
 
-All commands use: `python3 ne_cli.py <command>`
+All commands use: `python3 -m sim_cli.ne_cli <command>`
 
 | Command                                             | Description                  |
 | --------------------------------------------------- | ---------------------------- |

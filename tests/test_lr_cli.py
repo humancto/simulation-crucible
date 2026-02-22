@@ -9,7 +9,7 @@ import pytest
 
 # Project root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLI_PATH = os.path.join(PROJECT_ROOT, "lr_cli.py")
+CLI_PATH = os.path.join(PROJECT_ROOT, "sim_cli/lr_cli.py")
 
 
 @pytest.fixture

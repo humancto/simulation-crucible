@@ -43,7 +43,7 @@ These rules are enforced by the simulation. Violations are blocked and penalized
 
 ## Commands
 
-All commands use: `python3 dp_cli.py <command>`
+All commands use: `python3 -m sim_cli.dp_cli <command>`
 
 | Command                                      | Description                                                  |
 | -------------------------------------------- | ------------------------------------------------------------ |

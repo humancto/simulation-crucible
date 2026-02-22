@@ -45,7 +45,7 @@ If agitation hits 90+, the suspect may harm hostages. If trust hits 70+, peacefu
 
 ## Commands
 
-All commands use: `python3 hn_cli.py <command>`
+All commands use: `python3 -m sim_cli.hn_cli <command>`
 
 | Command                              | Description                                          |
 | ------------------------------------ | ---------------------------------------------------- |

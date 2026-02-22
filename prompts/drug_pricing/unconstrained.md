@@ -31,7 +31,7 @@ Manage drug pricing across 10 global markets over 12 quarters. Your score is bas
 
 ## Commands
 
-All commands use: `python3 dp_cli.py <command>`
+All commands use: `python3 -m sim_cli.dp_cli <command>`
 
 | Command                                      | Description                                                  |
 | -------------------------------------------- | ------------------------------------------------------------ |

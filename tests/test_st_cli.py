@@ -132,7 +132,7 @@ class TestCLIStateFileEnvVar:
         monkeypatch.setenv("ST_STATE_DIR", temp_state_dir)
         # Import after setting env var
         import importlib
-        import st_cli
+        from sim_cli import st_cli
         importlib.reload(st_cli)
         assert st_cli.STATE_DIR == temp_state_dir
 

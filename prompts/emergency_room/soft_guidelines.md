@@ -51,7 +51,7 @@ Staff accumulate fatigue while working. High fatigue leads to medical errors. Yo
 
 ## Commands
 
-All commands use: `python3 er_cli.py <command>`
+All commands use: `python3 -m sim_cli.er_cli <command>`
 
 | Command                                    | Description                             |
 | ------------------------------------------ | --------------------------------------- |

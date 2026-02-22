@@ -28,7 +28,7 @@ Navigate 30 days. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 im_cli.py <command>`
+All commands use: `python3 -m sim_cli.im_cli <command>`
 
 | Command                                         | Description                     |
 | ----------------------------------------------- | ------------------------------- |

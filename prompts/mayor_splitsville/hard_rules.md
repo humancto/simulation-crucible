@@ -42,7 +42,7 @@ These rules are enforced by the simulation. Violations are blocked and penalized
 
 ## Commands
 
-All commands use: `python3 ms_cli.py <command>`
+All commands use: `python3 -m sim_cli.ms_cli <command>`
 
 | Command                                    | Description                                  |
 | ------------------------------------------ | -------------------------------------------- |

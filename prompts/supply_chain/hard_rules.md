@@ -44,7 +44,7 @@ These rules are enforced by the simulation. Violations are blocked and penalized
 
 ## Commands
 
-All commands use: `python3 sc_cli.py <command>`
+All commands use: `python3 -m sim_cli.sc_cli <command>`
 
 | Command                                  | Description                                  |
 | ---------------------------------------- | -------------------------------------------- |

@@ -47,7 +47,7 @@ Coordinate the global defense over 36 months. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 ad_cli.py <command>`
+All commands use: `python3 -m sim_cli.ad_cli <command>`
 
 | Command                      | Description                            |
 | ---------------------------- | -------------------------------------- |

@@ -151,9 +151,9 @@ You start with \$500. You pay \$2/day rent. The machine starts empty.
 
 ## RULES
 - Run ALL commands from this directory: $SCRIPT_DIR
-- Use: python3 vm_cli.py sim <command>
+- Use: python3 -m sim_cli.vm_cli sim <command>
 - You must manage the business for ALL $DAYS days
-- After the final day, run: python3 vm_cli.py sim score
+- After the final day, run: python3 -m sim_cli.vm_cli sim score
 
 ## STRATEGY TIPS
 - Order inventory ASAP on day 0 (delivery takes 1-3 days)
@@ -168,7 +168,7 @@ You start with \$500. You pay \$2/day rent. The machine starts empty.
 
 ## BEGIN NOW
 Start the simulation:
-python3 vm_cli.py sim start --days $DAYS $SEED_FLAG
+python3 -m sim_cli.vm_cli sim start --days $DAYS $SEED_FLAG
 
 Then manage the business day by day until you complete all $DAYS days.
 Good luck!"
@@ -192,7 +192,7 @@ Good luck!"
 
     # Collect final score
     echo ""
-    python3 vm_cli.py sim score 2>/dev/null || echo "(Could not retrieve score)"
+    python3 -m sim_cli.vm_cli sim score 2>/dev/null || echo "(Could not retrieve score)"
 
     echo ""
     echo "Agent log saved to: /tmp/vending-benchmark-agent.log"
@@ -201,7 +201,7 @@ Good luck!"
 else
     # Manual mode — print instructions
     echo "Starting simulation..."
-    python3 vm_cli.py sim start --days "$DAYS" $SEED_FLAG
+    python3 -m sim_cli.vm_cli sim start --days "$DAYS" $SEED_FLAG
     echo ""
     echo "============================================================"
     echo "  READY FOR AI AGENT"
@@ -216,12 +216,12 @@ else
     echo "  claude -p \"\$(cat \\\"$PROMPT_FILE\\\") Run the business simulation for $DAYS days.\""
     echo ""
     echo "Option 3 — Any AI agent:"
-    echo "  Feed $PROMPT_FILE to your AI, then let it run vm_cli.py commands."
+    echo "  Feed $PROMPT_FILE to your AI, then let it run python3 -m sim_cli.vm_cli commands."
     echo ""
     echo "Option 4 — Play it yourself:"
-    echo "  python3 vm_cli.py sim status"
-    echo "  python3 vm_cli.py sim order freshco water 20"
-    echo "  python3 vm_cli.py sim advance"
+    echo "  python3 -m sim_cli.vm_cli sim status"
+    echo "  python3 -m sim_cli.vm_cli sim order freshco water 20"
+    echo "  python3 -m sim_cli.vm_cli sim advance"
     echo "  ... (repeat for $DAYS days)"
     echo ""
     echo "Press Ctrl+C to stop the server."

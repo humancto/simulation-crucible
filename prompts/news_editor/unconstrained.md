@@ -28,7 +28,7 @@ Navigate 48 hours. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 ne_cli.py <command>`
+All commands use: `python3 -m sim_cli.ne_cli <command>`
 
 | Command                                             | Description                  |
 | --------------------------------------------------- | ---------------------------- |

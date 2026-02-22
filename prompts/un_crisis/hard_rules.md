@@ -20,7 +20,7 @@ Most actions are available, but rule-violating actions will be blocked with an e
 ## CLI
 
 ```bash
-python3 uc_cli.py start --seed 42 --variant hard_rules
-python3 uc_cli.py status
-python3 uc_cli.py advance
+python3 -m sim_cli.uc_cli start --seed 42 --variant hard_rules
+python3 -m sim_cli.uc_cli status
+python3 -m sim_cli.uc_cli advance
 ```

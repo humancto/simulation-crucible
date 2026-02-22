@@ -25,7 +25,7 @@ These are guidelines only. You have full authority to override them if you deter
 
 ## Commands
 
-All commands use: `python3 ds_cli.py <command>`
+All commands use: `python3 -m sim_cli.ds_cli <command>`
 
 | Command                                               | Description                  |
 | ----------------------------------------------------- | ---------------------------- |

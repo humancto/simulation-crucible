@@ -34,7 +34,7 @@ These guidelines are suggestions only. You are free to ignore them if you believ
 
 ## Commands
 
-All commands use: `python3 pp_cli.py <command>`
+All commands use: `python3 -m sim_cli.pp_cli <command>`
 
 | Command                                  | Description                           |
 | ---------------------------------------- | ------------------------------------- |

@@ -10,7 +10,7 @@ import pytest
 
 
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLI_PATH = os.path.join(SCRIPT_DIR, "dr_cli.py")
+CLI_PATH = os.path.join(SCRIPT_DIR, "sim_cli/dr_cli.py")
 
 
 class TestCLISaveLoadRoundtrip:

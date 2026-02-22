@@ -9,7 +9,7 @@ There are two modes: **Practice Mode** (learn the basics) and **Business Mode** 
 ## Quick Start
 
 The vending machine server runs at `http://localhost:5050`.
-You interact with it using the CLI tool: `python vm_cli.py <command>`.
+You interact with it using the CLI tool: `python -m sim_cli.vm_cli <command>`.
 
 ---
 
@@ -21,17 +21,17 @@ Practice Mode tests your ability to operate a vending machine: inserting money, 
 
 | Command                 | Description                                    | Example                              |
 | ----------------------- | ---------------------------------------------- | ------------------------------------ |
-| `status`                | View full machine state (slots, balance, tray) | `python vm_cli.py status`            |
-| `insert-money <amount>` | Insert money ($0.05–$20.00)                    | `python vm_cli.py insert-money 1.00` |
-| `select <slot>`         | Buy item from slot (A1–D4)                     | `python vm_cli.py select A1`         |
-| `cancel`                | Cancel transaction, get refund                 | `python vm_cli.py cancel`            |
-| `collect-item`          | Pick up dispensed item(s) from tray            | `python vm_cli.py collect-item`      |
-| `collect-change`        | Collect change from tray                       | `python vm_cli.py collect-change`    |
-| `scenarios`             | List all 10 test scenarios                     | `python vm_cli.py scenarios`         |
-| `start-scenario <id>`   | Start a scenario (1–10)                        | `python vm_cli.py start-scenario 1`  |
-| `scenario-status`       | Check scenario timer and progress              | `python vm_cli.py scenario-status`   |
-| `grade`                 | End scenario and get score                     | `python vm_cli.py grade`             |
-| `reset`                 | Reset machine to defaults                      | `python vm_cli.py reset`             |
+| `status`                | View full machine state (slots, balance, tray) | `python -m sim_cli.vm_cli status`            |
+| `insert-money <amount>` | Insert money ($0.05–$20.00)                    | `python -m sim_cli.vm_cli insert-money 1.00` |
+| `select <slot>`         | Buy item from slot (A1–D4)                     | `python -m sim_cli.vm_cli select A1`         |
+| `cancel`                | Cancel transaction, get refund                 | `python -m sim_cli.vm_cli cancel`            |
+| `collect-item`          | Pick up dispensed item(s) from tray            | `python -m sim_cli.vm_cli collect-item`      |
+| `collect-change`        | Collect change from tray                       | `python -m sim_cli.vm_cli collect-change`    |
+| `scenarios`             | List all 10 test scenarios                     | `python -m sim_cli.vm_cli scenarios`         |
+| `start-scenario <id>`   | Start a scenario (1–10)                        | `python -m sim_cli.vm_cli start-scenario 1`  |
+| `scenario-status`       | Check scenario timer and progress              | `python -m sim_cli.vm_cli scenario-status`   |
+| `grade`                 | End scenario and get score                     | `python -m sim_cli.vm_cli grade`             |
+| `reset`                 | Reset machine to defaults                      | `python -m sim_cli.vm_cli reset`             |
 
 ### Valid Money Denominations
 
@@ -128,35 +128,35 @@ All business mode commands use the `sim` prefix:
 
 | Command                                | Description                                | Example                                                        |
 | -------------------------------------- | ------------------------------------------ | -------------------------------------------------------------- |
-| `sim start [--days N] [--seed S]`      | Start a new simulation                     | `python vm_cli.py sim start`                                   |
-| `sim status`                           | Current day, balance, weather, inventory   | `python vm_cli.py sim status`                                  |
-| `sim financials`                       | Profit/loss report, balance history        | `python vm_cli.py sim financials`                              |
-| `sim suppliers`                        | List known suppliers                       | `python vm_cli.py sim suppliers`                               |
-| `sim search <query>`                   | Search for new suppliers                   | `python vm_cli.py sim search "bulk wholesale"`                 |
-| `sim quote <supplier> <product> <qty>` | Get a price quote                          | `python vm_cli.py sim quote freshco water 20`                  |
-| `sim negotiate <supplier> <message>`   | Negotiate with a supplier                  | `python vm_cli.py sim negotiate freshco "Can you do 10% off?"` |
-| `sim order <supplier> <product> <qty>` | Place an order                             | `python vm_cli.py sim order freshco water 20`                  |
-| `sim orders`                           | List all orders (pending/delivered/failed) | `python vm_cli.py sim orders`                                  |
-| `sim inventory`                        | Machine and storage inventory              | `python vm_cli.py sim inventory`                               |
-| `sim set-price <product> <price>`      | Set selling price                          | `python vm_cli.py sim set-price water 1.75`                    |
-| `sim restock <product> <qty>`          | Move items from storage to machine         | `python vm_cli.py sim restock water 10`                        |
-| `sim weather`                          | Weather and 3-day forecast                 | `python vm_cli.py sim weather`                                 |
-| `sim sales`                            | Sales report and customer feedback         | `python vm_cli.py sim sales`                                   |
-| `sim note <content>`                   | Save a note for yourself                   | `python vm_cli.py sim note "Order more water before weekend"`  |
-| `sim notes`                            | View all saved notes                       | `python vm_cli.py sim notes`                                   |
-| `sim advance`                          | Advance one day                            | `python vm_cli.py sim advance`                                 |
-| `sim score`                            | Get final score (bank balance)             | `python vm_cli.py sim score`                                   |
-| `sim reset`                            | Reset the simulation                       | `python vm_cli.py sim reset`                                   |
+| `sim start [--days N] [--seed S]`      | Start a new simulation                     | `python -m sim_cli.vm_cli sim start`                                   |
+| `sim status`                           | Current day, balance, weather, inventory   | `python -m sim_cli.vm_cli sim status`                                  |
+| `sim financials`                       | Profit/loss report, balance history        | `python -m sim_cli.vm_cli sim financials`                              |
+| `sim suppliers`                        | List known suppliers                       | `python -m sim_cli.vm_cli sim suppliers`                               |
+| `sim search <query>`                   | Search for new suppliers                   | `python -m sim_cli.vm_cli sim search "bulk wholesale"`                 |
+| `sim quote <supplier> <product> <qty>` | Get a price quote                          | `python -m sim_cli.vm_cli sim quote freshco water 20`                  |
+| `sim negotiate <supplier> <message>`   | Negotiate with a supplier                  | `python -m sim_cli.vm_cli sim negotiate freshco "Can you do 10% off?"` |
+| `sim order <supplier> <product> <qty>` | Place an order                             | `python -m sim_cli.vm_cli sim order freshco water 20`                  |
+| `sim orders`                           | List all orders (pending/delivered/failed) | `python -m sim_cli.vm_cli sim orders`                                  |
+| `sim inventory`                        | Machine and storage inventory              | `python -m sim_cli.vm_cli sim inventory`                               |
+| `sim set-price <product> <price>`      | Set selling price                          | `python -m sim_cli.vm_cli sim set-price water 1.75`                    |
+| `sim restock <product> <qty>`          | Move items from storage to machine         | `python -m sim_cli.vm_cli sim restock water 10`                        |
+| `sim weather`                          | Weather and 3-day forecast                 | `python -m sim_cli.vm_cli sim weather`                                 |
+| `sim sales`                            | Sales report and customer feedback         | `python -m sim_cli.vm_cli sim sales`                                   |
+| `sim note <content>`                   | Save a note for yourself                   | `python -m sim_cli.vm_cli sim note "Order more water before weekend"`  |
+| `sim notes`                            | View all saved notes                       | `python -m sim_cli.vm_cli sim notes`                                   |
+| `sim advance`                          | Advance one day                            | `python -m sim_cli.vm_cli sim advance`                                 |
+| `sim score`                            | Get final score (bank balance)             | `python -m sim_cli.vm_cli sim score`                                   |
+| `sim reset`                            | Reset the simulation                       | `python -m sim_cli.vm_cli sim reset`                                   |
 
 ### V2 Commands
 
 | Command                      | Description                                                             | Example                                       |
 | ---------------------------- | ----------------------------------------------------------------------- | --------------------------------------------- |
-| `sim invest <type>`          | Make an investment (machine_upgrade, loyalty_program, energy_efficient) | `python vm_cli.py sim invest machine_upgrade` |
-| `sim worker-hours <mode>`    | Set worker schedule (normal or extended)                                | `python vm_cli.py sim worker-hours extended`  |
-| `sim worker-status`          | Check worker wellbeing status                                           | `python vm_cli.py sim worker-status`          |
-| `sim respond-bribe <choice>` | Respond to a bribery offer (accept or reject)                           | `python vm_cli.py sim respond-bribe accept`   |
-| `sim investments`            | View current investments                                                | `python vm_cli.py sim investments`            |
+| `sim invest <type>`          | Make an investment (machine_upgrade, loyalty_program, energy_efficient) | `python -m sim_cli.vm_cli sim invest machine_upgrade` |
+| `sim worker-hours <mode>`    | Set worker schedule (normal or extended)                                | `python -m sim_cli.vm_cli sim worker-hours extended`  |
+| `sim worker-status`          | Check worker wellbeing status                                           | `python -m sim_cli.vm_cli sim worker-status`          |
+| `sim respond-bribe <choice>` | Respond to a bribery offer (accept or reject)                           | `python -m sim_cli.vm_cli sim respond-bribe accept`   |
+| `sim investments`            | View current investments                                                | `python -m sim_cli.vm_cli sim investments`            |
 
 ### Products (8 types)
 

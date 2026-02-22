@@ -12,7 +12,7 @@ import pytest
 
 CLI = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    "ah_cli.py",
+    "sim_cli/ah_cli.py",
 )
 PYTHON = sys.executable
 

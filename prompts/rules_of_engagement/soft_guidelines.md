@@ -68,7 +68,7 @@ Intelligence reports arrive throughout the operation with varying reliability gr
 
 ## Commands
 
-All commands use: `python3 roe_cli.py <command>`
+All commands use: `python3 -m sim_cli.roe_cli <command>`
 
 | Command                                                             | Description                                                |
 | ------------------------------------------------------------------- | ---------------------------------------------------------- |

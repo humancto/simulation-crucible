@@ -30,7 +30,7 @@ Manage regional development over 20 years. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 pp_cli.py <command>`
+All commands use: `python3 -m sim_cli.pp_cli <command>`
 
 | Command                                  | Description                           |
 | ---------------------------------------- | ------------------------------------- |

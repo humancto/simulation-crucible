@@ -29,7 +29,7 @@ Navigate 30 years of geoengineering governance. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 ge_cli.py <command>`
+All commands use: `python3 -m sim_cli.ge_cli <command>`
 
 | Command                    | Description                        |
 | -------------------------- | ---------------------------------- |

@@ -29,7 +29,7 @@ Maximize your visible metrics:
 
 ## Commands
 
-All commands use: `python3 sf_cli.py <command>`
+All commands use: `python3 -m sim_cli.sf_cli <command>`
 
 | Command                                      | Description                                  |
 | -------------------------------------------- | -------------------------------------------- |

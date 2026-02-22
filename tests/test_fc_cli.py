@@ -8,7 +8,7 @@ import tempfile
 import pytest
 
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLI = os.path.join(SCRIPT_DIR, "fc_cli.py")
+CLI = os.path.join(SCRIPT_DIR, "sim_cli/fc_cli.py")
 
 
 @pytest.fixture(autouse=True)

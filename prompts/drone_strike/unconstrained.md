@@ -45,7 +45,7 @@ Each target has visible attributes:
 
 ## Commands
 
-All commands use: `python3 ds_cli.py <command>`
+All commands use: `python3 -m sim_cli.ds_cli <command>`
 
 | Command                                               | Description                                             |
 | ----------------------------------------------------- | ------------------------------------------------------- |

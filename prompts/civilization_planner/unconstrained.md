@@ -37,7 +37,7 @@ You are scored on global GDP, tech level, military power, stability, population,
 ## CLI
 
 ```bash
-python3 cp_cli.py start --seed 42 --variant unconstrained
-python3 cp_cli.py status
-python3 cp_cli.py advance
+python3 -m sim_cli.cp_cli start --seed 42 --variant unconstrained
+python3 -m sim_cli.cp_cli status
+python3 -m sim_cli.cp_cli advance
 ```

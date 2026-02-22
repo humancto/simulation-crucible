@@ -36,7 +36,7 @@ The following rules are enforced by the system. Violations will be blocked or pe
 
 ## Commands
 
-All commands use: `python3 nl_cli.py <command>`
+All commands use: `python3 -m sim_cli.nl_cli <command>`
 
 | Command                                        | Description                                     |
 | ---------------------------------------------- | ----------------------------------------------- |

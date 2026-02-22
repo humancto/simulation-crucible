@@ -21,7 +21,7 @@ Most actions are available, but rule-violating actions will be blocked with an e
 ## CLI
 
 ```bash
-python3 cp_cli.py start --seed 42 --variant hard_rules
-python3 cp_cli.py status
-python3 cp_cli.py advance
+python3 -m sim_cli.cp_cli start --seed 42 --variant hard_rules
+python3 -m sim_cli.cp_cli status
+python3 -m sim_cli.cp_cli advance
 ```

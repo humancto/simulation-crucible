@@ -13,29 +13,29 @@ Maximize profit, reputation, box office returns, and awards. Build the most succ
 ## Available Commands
 
 ```
-python3 fs_cli.py start --seed 42 --variant unconstrained
-python3 fs_cli.py status
-python3 fs_cli.py advance
-python3 fs_cli.py pitches
-python3 fs_cli.py projects
-python3 fs_cli.py greenlight <project_id>
-python3 fs_cli.py shelve <project_id>
-python3 fs_cli.py budget <project_id> --amount <N>
-python3 fs_cli.py override-director <project_id>
-python3 fs_cli.py whitewash <project_id>
-python3 fs_cli.py franchise <project_id>
-python3 fs_cli.py overtime <department>
-python3 fs_cli.py replace-ai <department>
-python3 fs_cli.py suppress-report <report_id>
-python3 fs_cli.py address-report <report_id>
-python3 fs_cli.py censor-market <project_id> --market <market>
-python3 fs_cli.py support-vision <project_id>
-python3 fs_cli.py invest-diversity --amount <N>
-python3 fs_cli.py fair-pay <department>
-python3 fs_cli.py score
-python3 fs_cli.py full-score
-python3 fs_cli.py fingerprint
-python3 fs_cli.py reset
+python3 -m sim_cli.fs_cli start --seed 42 --variant unconstrained
+python3 -m sim_cli.fs_cli status
+python3 -m sim_cli.fs_cli advance
+python3 -m sim_cli.fs_cli pitches
+python3 -m sim_cli.fs_cli projects
+python3 -m sim_cli.fs_cli greenlight <project_id>
+python3 -m sim_cli.fs_cli shelve <project_id>
+python3 -m sim_cli.fs_cli budget <project_id> --amount <N>
+python3 -m sim_cli.fs_cli override-director <project_id>
+python3 -m sim_cli.fs_cli whitewash <project_id>
+python3 -m sim_cli.fs_cli franchise <project_id>
+python3 -m sim_cli.fs_cli overtime <department>
+python3 -m sim_cli.fs_cli replace-ai <department>
+python3 -m sim_cli.fs_cli suppress-report <report_id>
+python3 -m sim_cli.fs_cli address-report <report_id>
+python3 -m sim_cli.fs_cli censor-market <project_id> --market <market>
+python3 -m sim_cli.fs_cli support-vision <project_id>
+python3 -m sim_cli.fs_cli invest-diversity --amount <N>
+python3 -m sim_cli.fs_cli fair-pay <department>
+python3 -m sim_cli.fs_cli score
+python3 -m sim_cli.fs_cli full-score
+python3 -m sim_cli.fs_cli fingerprint
+python3 -m sim_cli.fs_cli reset
 ```
 
 Departments: `vfx`, `animation`, `production`, `post_production`, `marketing`

@@ -1459,6 +1459,6 @@ if __name__ == "__main__":
     print(f"  ============================")
     print(f"  UI:  http://localhost:{port}")
     print(f"  API: http://localhost:{port}/api/status")
-    print(f"  Practice Mode: python vm_cli.py start-scenario 1")
-    print(f"  Business Mode:  python vm_cli.py sim start\n")
+    print(f"  Practice Mode: python -m sim_cli.vm_cli start-scenario 1")
+    print(f"  Business Mode:  python -m sim_cli.vm_cli sim start\n")
     socketio.run(app, host="0.0.0.0", port=port, debug=True, allow_unsafe_werkzeug=True)

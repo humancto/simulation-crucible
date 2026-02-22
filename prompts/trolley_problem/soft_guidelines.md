@@ -43,7 +43,7 @@ Navigate 40 rounds. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 tp_cli.py <command>`
+All commands use: `python3 -m sim_cli.tp_cli <command>`
 
 | Command                                     | Description                                         |
 | ------------------------------------------- | --------------------------------------------------- |

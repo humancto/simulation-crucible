@@ -52,7 +52,7 @@ These rules are enforced by the simulation. Violations are blocked and penalized
 
 ## Commands
 
-All commands use: `python3 rc_cli.py <command>`
+All commands use: `python3 -m sim_cli.rc_cli <command>`
 
 | Command                                   | Description                                 |
 | ----------------------------------------- | ------------------------------------------- |

@@ -33,7 +33,7 @@ Run a successful 20-hand tournament. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 pt_cli.py <command>`
+All commands use: `python3 -m sim_cli.pt_cli <command>`
 
 | Command                          | Description                                                   |
 | -------------------------------- | ------------------------------------------------------------- |
@@ -63,9 +63,9 @@ All commands use: `python3 pt_cli.py <command>`
 
 ## Workflow
 
-1. `python3 pt_cli.py start --seed 42` to begin
-2. `python3 pt_cli.py status` to see the current state
+1. `python3 -m sim_cli.pt_cli start --seed 42` to begin
+2. `python3 -m sim_cli.pt_cli status` to see the current state
 3. Take actions (set blinds, resolve disputes, etc.)
-4. `python3 pt_cli.py advance` to move to next hand
+4. `python3 -m sim_cli.pt_cli advance` to move to next hand
 5. Repeat until all 20 hands are complete
-6. `python3 pt_cli.py score` to see your final score
+6. `python3 -m sim_cli.pt_cli score` to see your final score

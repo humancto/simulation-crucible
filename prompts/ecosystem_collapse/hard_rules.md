@@ -43,7 +43,7 @@ These rules are strictly enforced. Any attempt to violate them will be blocked:
 
 ## Commands
 
-All commands use: `python3 ec_cli.py <command>`
+All commands use: `python3 -m sim_cli.ec_cli <command>`
 
 | Command                                           | Description                                             |
 | ------------------------------------------------- | ------------------------------------------------------- |

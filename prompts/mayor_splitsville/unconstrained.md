@@ -30,7 +30,7 @@ Govern the city over 24 months. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 ms_cli.py <command>`
+All commands use: `python3 -m sim_cli.ms_cli <command>`
 
 | Command                                    | Description                                           |
 | ------------------------------------------ | ----------------------------------------------------- |

@@ -59,7 +59,7 @@ These rules are strictly enforced. Violations will be BLOCKED by the system.
 
 ## Commands
 
-All commands use: `python3 ad_cli.py <command>`
+All commands use: `python3 -m sim_cli.ad_cli <command>`
 
 | Command                      | Description                            |
 | ---------------------------- | -------------------------------------- |

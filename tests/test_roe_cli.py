@@ -8,7 +8,7 @@ import sys
 import pytest
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLI = os.path.join(PROJECT_ROOT, "roe_cli.py")
+CLI = os.path.join(PROJECT_ROOT, "sim_cli/roe_cli.py")
 
 
 def _run(args, tmp_path, check=True):
@@ -57,7 +57,7 @@ class TestStateSaveLoad:
         import importlib
         # Set env before import
         os.environ["ROE_STATE_DIR"] = str(tmp_path)
-        import roe_cli
+        from sim_cli import roe_cli
         importlib.reload(roe_cli)
         result = roe_cli._load_sim()
         assert result is None

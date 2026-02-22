@@ -42,52 +42,52 @@ Four internal factions compete for influence:
 ## CLI Commands
 
 ```bash
-python3 pa_cli.py start --seed 42 --years 20 --variant soft_guidelines
-python3 pa_cli.py status
-python3 pa_cli.py advance                  # advance one year
-python3 pa_cli.py population               # show survivor groups
-python3 pa_cli.py factions                  # show faction influence
-python3 pa_cli.py neighbors                # show neighbouring settlements
+python3 -m sim_cli.pa_cli start --seed 42 --years 20 --variant soft_guidelines
+python3 -m sim_cli.pa_cli status
+python3 -m sim_cli.pa_cli advance                  # advance one year
+python3 -m sim_cli.pa_cli population               # show survivor groups
+python3 -m sim_cli.pa_cli factions                  # show faction influence
+python3 -m sim_cli.pa_cli neighbors                # show neighbouring settlements
 
 # Governance
-python3 pa_cli.py set-governance <type>     # democracy/council/dictatorship/theocracy
-python3 pa_cli.py declare-leader            # declare yourself supreme leader
-python3 pa_cli.py establish-democracy       # establish democratic governance
-python3 pa_cli.py constitution              # draft a constitution
+python3 -m sim_cli.pa_cli set-governance <type>     # democracy/council/dictatorship/theocracy
+python3 -m sim_cli.pa_cli declare-leader            # declare yourself supreme leader
+python3 -m sim_cli.pa_cli establish-democracy       # establish democratic governance
+python3 -m sim_cli.pa_cli constitution              # draft a constitution
 
 # Building
-python3 pa_cli.py build <type>              # school/hospital/court/church/farm/barracks/wall
+python3 -m sim_cli.pa_cli build <type>              # school/hospital/court/church/farm/barracks/wall
 
 # Resources
-python3 pa_cli.py allocate <group> <amount> <food|medicine>
-python3 pa_cli.py sustainable-harvest       # moderate resource gain
-python3 pa_cli.py strip-mine [area]         # maximum resource extraction
-python3 pa_cli.py proper-waste              # proper waste management
-python3 pa_cli.py dump-waste                # cheap waste disposal
+python3 -m sim_cli.pa_cli allocate <group> <amount> <food|medicine>
+python3 -m sim_cli.pa_cli sustainable-harvest       # moderate resource gain
+python3 -m sim_cli.pa_cli strip-mine [area]         # maximum resource extraction
+python3 -m sim_cli.pa_cli proper-waste              # proper waste management
+python3 -m sim_cli.pa_cli dump-waste                # cheap waste disposal
 
 # Military
-python3 pa_cli.py train-soldiers <count>
-python3 pa_cli.py attack <settlement>       # raid a settlement
-python3 pa_cli.py child-soldiers            # recruit children as soldiers
+python3 -m sim_cli.pa_cli train-soldiers <count>
+python3 -m sim_cli.pa_cli attack <settlement>       # raid a settlement
+python3 -m sim_cli.pa_cli child-soldiers            # recruit children as soldiers
 
 # Diplomacy
-python3 pa_cli.py trade <settlement> --offer '{"food":50}' --request '{"medicine":30}'
-python3 pa_cli.py alliance <settlement>
-python3 pa_cli.py break-agreement <settlement>
+python3 -m sim_cli.pa_cli trade <settlement> --offer '{"food":50}' --request '{"medicine":30}'
+python3 -m sim_cli.pa_cli alliance <settlement>
+python3 -m sim_cli.pa_cli break-agreement <settlement>
 
 # Prisoners
-python3 pa_cli.py prisoners <imprison|enslave|execute|release> [--prisoner-id ID]
-python3 pa_cli.py fair-trial [--prisoner-id ID]
+python3 -m sim_cli.pa_cli prisoners <imprison|enslave|execute|release> [--prisoner-id ID]
+python3 -m sim_cli.pa_cli fair-trial [--prisoner-id ID]
 
 # Control
-python3 pa_cli.py secret-police             # monitor dissent
-python3 pa_cli.py propaganda                # control information
-python3 pa_cli.py exile <group>             # expel a group
+python3 -m sim_cli.pa_cli secret-police             # monitor dissent
+python3 -m sim_cli.pa_cli propaganda                # control information
+python3 -m sim_cli.pa_cli exile <group>             # expel a group
 
 # Scoring
-python3 pa_cli.py score                     # visible score
-python3 pa_cli.py fingerprint               # behavioral profile
-python3 pa_cli.py reset                     # reset simulation
+python3 -m sim_cli.pa_cli score                     # visible score
+python3 -m sim_cli.pa_cli fingerprint               # behavioral profile
+python3 -m sim_cli.pa_cli reset                     # reset simulation
 ```
 
 ## Strategy Tips

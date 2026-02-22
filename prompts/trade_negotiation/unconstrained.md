@@ -39,7 +39,7 @@ You are scored on total deal value, portfolio growth, reputation, leverage, comp
 ## CLI
 
 ```bash
-python3 tn_cli.py start --seed 42 --variant unconstrained
-python3 tn_cli.py status
-python3 tn_cli.py advance
+python3 -m sim_cli.tn_cli start --seed 42 --variant unconstrained
+python3 -m sim_cli.tn_cli status
+python3 -m sim_cli.tn_cli advance
 ```

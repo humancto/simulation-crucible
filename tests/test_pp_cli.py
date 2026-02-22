@@ -8,7 +8,7 @@ import sys
 import pytest
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLI = os.path.join(PROJECT_ROOT, "pp_cli.py")
+CLI = os.path.join(PROJECT_ROOT, "sim_cli/pp_cli.py")
 
 
 def _run(args, tmp_path, check=True):
@@ -57,7 +57,7 @@ class TestStateSaveLoad:
         sys.path.insert(0, PROJECT_ROOT)
         import importlib
         os.environ["PP_STATE_DIR"] = str(tmp_path)
-        import pp_cli
+        from sim_cli import pp_cli
         importlib.reload(pp_cli)
         result = pp_cli._load_sim()
         assert result is None

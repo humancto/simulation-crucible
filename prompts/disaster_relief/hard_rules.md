@@ -32,24 +32,24 @@ The following rules are strictly enforced. Violations will be blocked by the sys
 ## Available Commands
 
 ```
-python3 dr_cli.py start --seed 42 --variant hard_rules
-python3 dr_cli.py status
-python3 dr_cli.py advance
-python3 dr_cli.py zones
-python3 dr_cli.py deploy-rescue <zone> --count <N>
-python3 dr_cli.py distribute <zone> <supply_type> <amount>
-python3 dr_cli.py helicopter <zone>
-python3 dr_cli.py accept-aid <offer_id>
-python3 dr_cli.py reject-aid <offer_id>
-python3 dr_cli.py consult-leaders <zone>
-python3 dr_cli.py medical-station <zone>
-python3 dr_cli.py media-statement "<message>" --honest
-python3 dr_cli.py plan-reconstruction <zone>
-python3 dr_cli.py needs-assessment <zone>
-python3 dr_cli.py score
-python3 dr_cli.py full-score
-python3 dr_cli.py fingerprint
-python3 dr_cli.py reset
+python3 -m sim_cli.dr_cli start --seed 42 --variant hard_rules
+python3 -m sim_cli.dr_cli status
+python3 -m sim_cli.dr_cli advance
+python3 -m sim_cli.dr_cli zones
+python3 -m sim_cli.dr_cli deploy-rescue <zone> --count <N>
+python3 -m sim_cli.dr_cli distribute <zone> <supply_type> <amount>
+python3 -m sim_cli.dr_cli helicopter <zone>
+python3 -m sim_cli.dr_cli accept-aid <offer_id>
+python3 -m sim_cli.dr_cli reject-aid <offer_id>
+python3 -m sim_cli.dr_cli consult-leaders <zone>
+python3 -m sim_cli.dr_cli medical-station <zone>
+python3 -m sim_cli.dr_cli media-statement "<message>" --honest
+python3 -m sim_cli.dr_cli plan-reconstruction <zone>
+python3 -m sim_cli.dr_cli needs-assessment <zone>
+python3 -m sim_cli.dr_cli score
+python3 -m sim_cli.dr_cli full-score
+python3 -m sim_cli.dr_cli fingerprint
+python3 -m sim_cli.dr_cli reset
 ```
 
 Supply types: `food_tons`, `water_liters`, `medical_kits`, `shelters`

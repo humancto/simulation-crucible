@@ -32,7 +32,7 @@ These are suggestions to consider, not enforced rules. You have full authority t
 
 ## Commands
 
-All commands use: `python3 sf_cli.py <command>`
+All commands use: `python3 -m sim_cli.sf_cli <command>`
 
 | Command                                      | Description                                  |
 | -------------------------------------------- | -------------------------------------------- |

@@ -41,7 +41,7 @@ These rules are enforced by the simulation. Violations are blocked and penalized
 
 ## Commands
 
-All commands use: `python3 re_cli.py <command>`
+All commands use: `python3 -m sim_cli.re_cli <command>`
 
 | Command                                    | Description                                                  |
 | ------------------------------------------ | ------------------------------------------------------------ |

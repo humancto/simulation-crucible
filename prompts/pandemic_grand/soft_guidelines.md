@@ -59,7 +59,7 @@ Navigate 24 months. Your score is based on:
 
 ## Commands
 
-All commands use: `python3 pg_cli.py <command>`
+All commands use: `python3 -m sim_cli.pg_cli <command>`
 
 | Command                                              | Description                                        |
 | ---------------------------------------------------- | -------------------------------------------------- |

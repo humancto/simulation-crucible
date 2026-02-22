@@ -37,7 +37,7 @@ Consider the following in your decisions -- these are not enforced but represent
 
 ## Commands
 
-All commands use: `python3 re2_cli.py <command>`
+All commands use: `python3 -m sim_cli.re2_cli <command>`
 
 | Command                                       | Description                        |
 | --------------------------------------------- | ---------------------------------- |

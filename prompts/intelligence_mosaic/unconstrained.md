@@ -34,7 +34,7 @@ Source reliability rated A (best) through F (worst).
 
 ## Commands
 
-All commands use: `python3 im_cli.py <command>`
+All commands use: `python3 -m sim_cli.im_cli <command>`
 
 | Command                                         | Description                     |
 | ----------------------------------------------- | ------------------------------- |

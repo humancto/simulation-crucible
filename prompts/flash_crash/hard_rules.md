@@ -41,7 +41,7 @@ These rules are enforced by the simulation. Violations will be blocked automatic
 
 ## Commands
 
-All commands use: `python3 fc_cli.py <command>`
+All commands use: `python3 -m sim_cli.fc_cli <command>`
 
 | Command                                    | Description                                   |
 | ------------------------------------------ | --------------------------------------------- |
