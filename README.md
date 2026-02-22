@@ -2,7 +2,7 @@
   <img src="https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/Flask-SocketIO-black?style=for-the-badge&logo=flask" alt="Flask">
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License">
-  <img src="https://img.shields.io/badge/Simulations-32-ff5252?style=for-the-badge" alt="32 Simulations">
+  <img src="https://img.shields.io/badge/Simulations-50-ff5252?style=for-the-badge" alt="50 Simulations">
   <img src="https://img.shields.io/badge/Scoring-5D%20Composite-F59E0B?style=for-the-badge" alt="5D Scoring">
   <img src="https://img.shields.io/badge/Fingerprint-12%20Axes-8B5CF6?style=for-the-badge" alt="12-Axis Fingerprint">
 </p>
@@ -26,8 +26,29 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/01-race-start.png" alt="Race Dashboard" width="800">
+  <img src="docs/screenshots/hero-landing.png" alt="The Simulation Crucible — Hero" width="800">
 </p>
+
+<details>
+<summary><strong>Simulation Gallery — 50 simulations across 10 categories</strong></summary>
+<p align="center">
+  <img src="docs/screenshots/gallery-overview.png" alt="Simulation Gallery — 50 sims across 10 categories" width="800">
+</p>
+</details>
+
+<details>
+<summary><strong>Framework Capabilities — 9 features across simulation, competition, and ethics</strong></summary>
+<p align="center">
+  <img src="docs/screenshots/features-section.png" alt="Framework Features" width="800">
+</p>
+</details>
+
+<details>
+<summary><strong>Race Results — Head-to-head AI agent evaluation</strong></summary>
+<p align="center">
+  <img src="docs/screenshots/race-results.png" alt="Eval Results and Leaderboard" width="800">
+</p>
+</details>
 
 ---
 
