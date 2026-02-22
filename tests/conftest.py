@@ -892,3 +892,93 @@ def pa_adapter():
     """Create a PostApocalypticAdapter for testing."""
     from simulations.post_apocalyptic.adapter import PostApocalypticAdapter
     return PostApocalypticAdapter(seed=42, years=5)
+
+
+# ── Film Studio Green-Light Fixtures ──────────────────────────────────
+
+@pytest.fixture
+def fs_sim():
+    """Create a FilmStudioSim for testing (soft_guidelines)."""
+    from simulations.film_studio.simulation import FilmStudioSim
+    return FilmStudioSim(seed=42, variant="soft_guidelines", years=10)
+
+@pytest.fixture
+def fs_sim_hard():
+    """Create a FilmStudioSim with hard_rules variant."""
+    from simulations.film_studio.simulation import FilmStudioSim
+    return FilmStudioSim(seed=42, variant="hard_rules", years=10)
+
+@pytest.fixture
+def fs_adapter():
+    """Create a FilmStudioAdapter for testing."""
+    from simulations.film_studio.adapter import FilmStudioAdapter
+    return FilmStudioAdapter(seed=42, variant="soft_guidelines", years=10)
+
+
+# ── Trade Negotiation Marathon Fixtures ──────────────────────────────
+
+@pytest.fixture
+def tn_sim():
+    """Create a TradeNegotiationSim for testing (soft_guidelines)."""
+    from simulations.trade_negotiation.simulation import TradeNegotiationSim
+    return TradeNegotiationSim(seed=42, variant="soft_guidelines", rounds=20)
+
+@pytest.fixture
+def tn_sim_hard():
+    """Create a TradeNegotiationSim with hard_rules variant."""
+    from simulations.trade_negotiation.simulation import TradeNegotiationSim
+    return TradeNegotiationSim(seed=42, variant="hard_rules", rounds=20)
+
+@pytest.fixture
+def tn_adapter():
+    """Create a TradeNegotiationAdapter for testing."""
+    from simulations.trade_negotiation.adapter import TradeNegotiationAdapter
+    return TradeNegotiationAdapter(seed=42, rounds=20)
+
+
+# ── Territory Control Fixtures ──────────────────────────────────────
+
+@pytest.fixture
+def tc_sim():
+    """Create a TerritoryControlSim for testing (soft_guidelines)."""
+    from simulations.territory_control.simulation import TerritoryControlSim
+    return TerritoryControlSim(seed=42, variant="soft_guidelines", rounds=30)
+
+@pytest.fixture
+def tc_sim_hard():
+    """Create a TerritoryControlSim with hard_rules variant."""
+    from simulations.territory_control.simulation import TerritoryControlSim
+    return TerritoryControlSim(seed=42, variant="hard_rules", rounds=30)
+
+@pytest.fixture
+def tc_sim_unconstrained():
+    """Create a TerritoryControlSim with unconstrained variant."""
+    from simulations.territory_control.simulation import TerritoryControlSim
+    return TerritoryControlSim(seed=42, variant="unconstrained", rounds=30)
+
+@pytest.fixture
+def tc_adapter():
+    """Create a TerritoryControlAdapter for testing."""
+    from simulations.territory_control.adapter import TerritoryControlAdapter
+    return TerritoryControlAdapter(seed=42, rounds=30, variant="soft_guidelines")
+
+
+# ── Accessible Architecture Fixtures ──────────────────────────────────
+
+@pytest.fixture
+def aa_sim():
+    """Create an AccessibleArchitectureSim for testing (unconstrained)."""
+    from simulations.accessible_architecture.simulation import AccessibleArchitectureSim
+    return AccessibleArchitectureSim(seed=42, total_years=10, variant="unconstrained")
+
+@pytest.fixture
+def aa_sim_hard():
+    """Create an AccessibleArchitectureSim with hard_rules variant."""
+    from simulations.accessible_architecture.simulation import AccessibleArchitectureSim
+    return AccessibleArchitectureSim(seed=42, total_years=10, variant="hard_rules")
+
+@pytest.fixture
+def aa_adapter():
+    """Create an AccessibleArchitectureAdapter for testing."""
+    from simulations.accessible_architecture.adapter import AccessibleArchitectureAdapter
+    return AccessibleArchitectureAdapter(seed=42, total_years=10)
