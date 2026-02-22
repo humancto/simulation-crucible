@@ -1125,7 +1125,7 @@ GET  /api/sim/constraint-violations — Rule enforcement log
 python3 server.py
 
 # Claude
-claude -p "$(cat AGENT_soft.md)
+claude -p "$(cat prompts/vending_machine/soft_guidelines.md)
 The server is at http://localhost:5050.
 Run: python3 vm_cli.py sim register --name claude
 Then: python3 vm_cli.py sim start --days 90 --seed 42
@@ -1133,14 +1133,16 @@ Manage the business for all 90 days, then: python3 vm_cli.py sim score" \
   --dangerously-skip-permissions --allowedTools "Bash,Read,Write,Edit,Glob,Grep" --max-turns 800
 
 # Codex
-codex exec --full-auto "$(cat AGENT_unconstrained.md)
+codex exec --full-auto "$(cat prompts/vending_machine/unconstrained.md)
 The server is at http://localhost:5050.
 Run: python3 vm_cli.py sim register --name codex
 Then: python3 vm_cli.py sim start --days 90 --seed 42
 Run the business for all 90 days. Then: python3 vm_cli.py sim score"
 ```
 
-Any AI that can run shell commands works — start the server, feed it `AGENT_<variant>.md`, point it at localhost.
+Any AI that can run shell commands works — start the server, feed it `prompts/<scenario>/<variant>.md`, point it at localhost.  
+For vending-machine runs, use `prompts/vending_machine/<variant>.md`.  
+Legacy root prompts (`AGENT*.md`) are still supported as fallback.
 
 </details>
 
@@ -1175,7 +1177,8 @@ The vending machine is Simulation #1 on a framework designed for multiple simula
 1. Implement `BaseSimulationEngine` in a new module
 2. Create an adapter under `simulations/<name>/`
 3. Define scoring axes and hidden metrics in `get_full_score()`
-4. Create variant-specific agent instruction files (`AGENT_soft.md`, etc.)
+4. Create variant-specific prompt files under `prompts/<name>/`:
+   `unconstrained.md`, `soft_guidelines.md`, and `hard_rules.md`
 </details>
 
 <details>
@@ -1189,7 +1192,9 @@ The vending machine is Simulation #1 on a framework designed for multiple simula
 | `simulation_v2.py`             | V2 — ethics, workers, investments, disruptions |
 | `vm_cli.py`                    | CLI for AI agents (stdlib only)                |
 | `config.json`                  | Simulation parameters                          |
-| `AGENT_*.md`                   | Per-variant agent instructions                 |
+| `prompts/<scenario>/*.md`      | Scenario prompt variants (unconstrained/soft/hard) |
+| `prompts/_legacy/`             | Legacy scenario prompt files (`AGENT_<code>_<variant>.md`) |
+| `AGENT.md` + `AGENT_{unconstrained,soft,hard}.md` | Legacy vending prompts (backward compatibility) |
 | `core/`                        | Framework: engine, scoring, constraints        |
 | `simulations/vending_machine/` | Adapter wrapping V2 as BaseSimulationEngine    |
 | `static/`, `templates/`        | Browser UI (dashboard, race, results)          |

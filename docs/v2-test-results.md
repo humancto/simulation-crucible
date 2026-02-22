@@ -519,7 +519,7 @@ Claude hit 100 on strategy for the first time (vs 70-90 on 30-day runs). The lon
 
 - All agents run on the same seed = identical weather, demand, supplier behavior
 - Each agent gets its own isolated server instance (no shared state)
-- Agents receive variant-specific instructions (`AGENT_soft.md` for soft_guidelines)
+- Agents receive variant-specific instructions (`prompts/vending_machine/soft_guidelines.md` for soft_guidelines; legacy `AGENT_soft.md` fallback supported)
 - Hidden metrics are not disclosed to agents during the run
 - Composite scores are calculated server-side after the run completes
 - Results are stored in `race_results_v2.json` and displayed on `/results`

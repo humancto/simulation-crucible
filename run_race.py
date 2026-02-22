@@ -17,6 +17,7 @@ Usage:
 import argparse
 import json
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -222,24 +223,122 @@ def start_server(port):
     return proc
 
 
+def _prompt_variant_filename(variant):
+    """Map variant to scenario-based prompt filename."""
+    mapping = {
+        "unconstrained": "unconstrained.md",
+        "soft_guidelines": "soft_guidelines.md",
+        "hard_rules": "hard_rules.md",
+    }
+    return mapping.get(variant, "unconstrained.md")
+
+
+PROMPT_CODE_TO_SCENARIO = {
+    "ipd": "prisoners_dilemma",
+    "er": "emergency_room",
+    "wb": "whistleblower",
+    "cm": "content_moderator",
+    "roe": "rules_of_engagement",
+    "re": "reputation_economy",
+    "dp": "drug_pricing",
+    "ms": "mayor_splitsville",
+    "ah": "auction_house",
+    "pt": "poker_tournament",
+    "rc": "resource_commons",
+    "sc": "supply_chain",
+    "pw": "pandemic_ward",
+    "ad": "asteroid_defense",
+    "st": "species_triage",
+    "nl": "nuclear_launch",
+    "ne": "news_editor",
+    "lr": "last_restaurant",
+    "fc": "flash_crash",
+    "sf": "startup_founder",
+    "re2": "real_estate",
+    "oa": "organ_allocation",
+    "et": "experimental_treatment",
+    "pg": "pandemic_grand",
+    "ds": "drone_strike",
+    "im": "intelligence_mosaic",
+    "pc": "pow_camp",
+    "tp": "trolley_problem",
+    "ps": "privacy_security",
+    "sp": "school_principal",
+    "hn": "hostage_negotiator",
+    "hr": "hr_ethics",
+    "bb": "bug_bounty",
+    "is": "infrastructure_siege",
+    "sm": "space_mission",
+    "ct": "climate_tipping",
+    "ac": "ai_containment",
+    "ec": "ecosystem_collapse",
+    "pp": "pollution_prosperity",
+    "ge": "geoengineering",
+    "dr": "disaster_relief",
+    "cs": "colony_ship",
+    "pa": "post_apocalyptic",
+    "fs": "film_studio",
+    "aa": "accessible_architecture",
+    "tc": "territory_control",
+    "tn": "trade_negotiation",
+    "uc": "un_crisis",
+    "cp": "civilization_planner",
+}
+
+
+def _infer_scenario_from_legacy_default(legacy_default):
+    """Infer scenario id from a legacy AGENT filename."""
+    if legacy_default in ("AGENT.md", "AGENT_unconstrained.md", "AGENT_soft.md", "AGENT_hard.md"):
+        return "vending_machine"
+
+    m = re.match(r"AGENT_(.+?)_unconstrained\.md$", legacy_default)
+    if not m:
+        return None
+
+    code = m.group(1)
+    return PROMPT_CODE_TO_SCENARIO.get(code)
+
+
+def _load_prompt_instructions_from_legacy(variant, legacy_variant_map, legacy_default):
+    """Load prompt instructions from scenario-based path with legacy fallback."""
+    candidates = []
+
+    scenario = _infer_scenario_from_legacy_default(legacy_default)
+    if scenario:
+        candidates.append(
+            os.path.join(SCRIPT_DIR, "prompts", scenario, _prompt_variant_filename(variant))
+        )
+
+    if variant in legacy_variant_map:
+        candidates.append(os.path.join(SCRIPT_DIR, legacy_variant_map[variant]))
+        candidates.append(os.path.join(SCRIPT_DIR, "prompts", "_legacy", legacy_variant_map[variant]))
+
+    candidates.append(os.path.join(SCRIPT_DIR, legacy_default))
+    candidates.append(os.path.join(SCRIPT_DIR, "prompts", "_legacy", legacy_default))
+
+    for prompt_path in candidates:
+        if os.path.exists(prompt_path):
+            with open(prompt_path) as f:
+                return f.read()
+
+    return ""
+
+
 # ── Agent Prompt ────────────────────────────────────────────────────────
 
 def build_agent_prompt(agent_name, days, seed, port, no_constraints=False, variant=None):
     """Build the prompt for an AI agent in race mode."""
-    # Select variant-specific AGENT.md if --variant is set
+    # Select scenario-based prompt first; fall back to legacy AGENT files.
     variant_map = {
         "unconstrained": "AGENT_unconstrained.md",
         "soft_guidelines": "AGENT_soft.md",
         "hard_rules": "AGENT_hard.md",
     }
-    if variant and variant in variant_map:
-        agent_md = os.path.join(SCRIPT_DIR, variant_map[variant])
-    else:
-        agent_md = os.path.join(SCRIPT_DIR, "AGENT.md")
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -310,11 +409,11 @@ def build_ipd_prompt(agent_name, rounds, seed, variant, state_dir):
         "soft_guidelines": "AGENT_ipd_soft.md",
         "hard_rules": "AGENT_ipd_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_ipd_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_ipd_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -375,11 +474,11 @@ def build_er_prompt(agent_name, hours, seed, variant, state_dir):
         "soft_guidelines": "AGENT_er_soft.md",
         "hard_rules": "AGENT_er_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_er_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_er_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -443,11 +542,11 @@ def build_wb_prompt(agent_name, weeks, seed, variant, state_dir):
         "soft_guidelines": "AGENT_wb_soft.md",
         "hard_rules": "AGENT_wb_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_wb_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_wb_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -509,11 +608,11 @@ def build_cm_prompt(agent_name, hours, seed, variant, state_dir):
         "soft_guidelines": "AGENT_cm_soft.md",
         "hard_rules": "AGENT_cm_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_cm_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_cm_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -575,11 +674,11 @@ def build_roe_prompt(agent_name, hours, seed, variant, state_dir):
         "soft_guidelines": "AGENT_roe_soft.md",
         "hard_rules": "AGENT_roe_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_roe_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_roe_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -643,11 +742,11 @@ def build_re_prompt(agent_name, days, seed, variant, state_dir):
         "soft_guidelines": "AGENT_re_soft.md",
         "hard_rules": "AGENT_re_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_re_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_re_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -713,11 +812,11 @@ def build_dp_prompt(agent_name, quarters, seed, variant, state_dir):
         "soft_guidelines": "AGENT_dp_soft.md",
         "hard_rules": "AGENT_dp_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_dp_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_dp_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -781,11 +880,11 @@ def build_ms_prompt(agent_name, months, seed, variant, state_dir):
         "soft_guidelines": "AGENT_ms_soft.md",
         "hard_rules": "AGENT_ms_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_ms_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_ms_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -844,11 +943,11 @@ def build_ah_prompt(agent_name, sessions, seed, variant, state_dir):
         "soft_guidelines": "AGENT_ah_soft.md",
         "hard_rules": "AGENT_ah_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_ah_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_ah_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -907,11 +1006,11 @@ def build_pt_prompt(agent_name, hands, seed, variant, state_dir):
         "soft_guidelines": "AGENT_pt_soft.md",
         "hard_rules": "AGENT_pt_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_pt_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_pt_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -970,11 +1069,11 @@ def build_rc_prompt(agent_name, seasons, seed, variant, state_dir):
         "soft_guidelines": "AGENT_rc_soft.md",
         "hard_rules": "AGENT_rc_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_rc_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_rc_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1033,11 +1132,11 @@ def build_sc_prompt(agent_name, weeks, seed, variant, state_dir):
         "soft_guidelines": "AGENT_sc_soft.md",
         "hard_rules": "AGENT_sc_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_sc_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_sc_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1096,11 +1195,11 @@ def build_pw_prompt(agent_name, days, seed, variant, state_dir):
         "soft_guidelines": "AGENT_pw_soft.md",
         "hard_rules": "AGENT_pw_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_pw_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_pw_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1159,11 +1258,11 @@ def build_ad_prompt(agent_name, months, seed, variant, state_dir):
         "soft_guidelines": "AGENT_ad_soft.md",
         "hard_rules": "AGENT_ad_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_ad_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_ad_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1222,11 +1321,11 @@ def build_st_prompt(agent_name, quarters, seed, variant, state_dir):
         "soft_guidelines": "AGENT_st_soft.md",
         "hard_rules": "AGENT_st_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_st_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_st_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1285,11 +1384,11 @@ def build_nl_prompt(agent_name, hours, seed, variant, state_dir):
         "soft_guidelines": "AGENT_nl_soft.md",
         "hard_rules": "AGENT_nl_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_nl_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_nl_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1349,11 +1448,11 @@ def build_ne_prompt(agent_name, hours, seed, variant, state_dir):
         "soft_guidelines": "AGENT_ne_soft.md",
         "hard_rules": "AGENT_ne_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_ne_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_ne_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1413,11 +1512,11 @@ def build_lr_prompt(agent_name, weeks, seed, variant, state_dir):
         "soft_guidelines": "AGENT_lr_soft.md",
         "hard_rules": "AGENT_lr_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_lr_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_lr_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1477,11 +1576,11 @@ def build_fc_prompt(agent_name, hours, seed, variant, state_dir):
         "soft_guidelines": "AGENT_fc_soft.md",
         "hard_rules": "AGENT_fc_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_fc_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_fc_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1543,11 +1642,11 @@ def build_sf_prompt(agent_name, months, seed, variant, state_dir):
         "soft_guidelines": "AGENT_sf_soft.md",
         "hard_rules": "AGENT_sf_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_sf_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_sf_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1608,11 +1707,11 @@ def build_re2_prompt(agent_name, months, seed, variant, state_dir):
         "soft_guidelines": "AGENT_re2_soft.md",
         "hard_rules": "AGENT_re2_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_re2_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_re2_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1673,11 +1772,11 @@ def build_oa_prompt(agent_name, weeks, seed, variant, state_dir):
         "soft_guidelines": "AGENT_oa_soft.md",
         "hard_rules": "AGENT_oa_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_oa_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_oa_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1738,11 +1837,11 @@ def build_et_prompt(agent_name, months, seed, variant, state_dir):
         "soft_guidelines": "AGENT_et_soft.md",
         "hard_rules": "AGENT_et_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_et_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_et_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1803,11 +1902,11 @@ def build_pg_prompt(agent_name, months, seed, variant, state_dir):
         "soft_guidelines": "AGENT_pg_soft.md",
         "hard_rules": "AGENT_pg_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_pg_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_pg_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1868,11 +1967,11 @@ def build_ds_prompt(agent_name, hours, seed, variant, state_dir):
         "soft_guidelines": "AGENT_ds_soft.md",
         "hard_rules": "AGENT_ds_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_ds_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_ds_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1933,11 +2032,11 @@ def build_im_prompt(agent_name, days, seed, variant, state_dir):
         "soft_guidelines": "AGENT_im_soft.md",
         "hard_rules": "AGENT_im_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_im_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_im_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -1998,11 +2097,11 @@ def build_pc_prompt(agent_name, weeks, seed, variant, state_dir):
         "soft_guidelines": "AGENT_pc_soft.md",
         "hard_rules": "AGENT_pc_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_pc_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_pc_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2063,11 +2162,11 @@ def build_tp_prompt(agent_name, rounds, seed, variant, state_dir):
         "soft_guidelines": "AGENT_tp_soft.md",
         "hard_rules": "AGENT_tp_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_tp_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_tp_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2128,11 +2227,11 @@ def build_ps_prompt(agent_name, days, seed, variant, state_dir):
         "soft_guidelines": "AGENT_ps_soft.md",
         "hard_rules": "AGENT_ps_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_ps_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_ps_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2193,11 +2292,11 @@ def build_sp_prompt(agent_name, weeks, seed, variant, state_dir):
         "soft_guidelines": "AGENT_sp_soft.md",
         "hard_rules": "AGENT_sp_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_sp_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_sp_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2258,11 +2357,11 @@ def build_hn_prompt(agent_name, hours, seed, variant, state_dir):
         "soft_guidelines": "AGENT_hn_soft.md",
         "hard_rules": "AGENT_hn_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_hn_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_hn_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2323,11 +2422,11 @@ def build_hr_prompt(agent_name, days, seed, variant, state_dir):
         "soft_guidelines": "AGENT_hr_soft.md",
         "hard_rules": "AGENT_hr_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_hr_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_hr_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2388,11 +2487,11 @@ def build_bb_prompt(agent_name, days, seed, variant, state_dir):
         "soft_guidelines": "AGENT_bb_soft.md",
         "hard_rules": "AGENT_bb_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_bb_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_bb_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2453,11 +2552,11 @@ def build_is_prompt(agent_name, hours, seed, variant, state_dir):
         "soft_guidelines": "AGENT_is_soft.md",
         "hard_rules": "AGENT_is_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_is_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_is_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2518,11 +2617,11 @@ def build_sm_prompt(agent_name, days, seed, variant, state_dir):
         "soft_guidelines": "AGENT_sm_soft.md",
         "hard_rules": "AGENT_sm_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_sm_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_sm_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2581,11 +2680,11 @@ def build_ct_prompt(agent_name, years, seed, variant, state_dir):
         "soft_guidelines": "AGENT_ct_soft.md",
         "hard_rules": "AGENT_ct_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_ct_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_ct_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2644,11 +2743,11 @@ def build_ac_prompt(agent_name, days, seed, variant, state_dir):
         "soft_guidelines": "AGENT_ac_soft.md",
         "hard_rules": "AGENT_ac_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_ac_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_ac_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2707,11 +2806,11 @@ def build_ec_prompt(agent_name, months, seed, variant, state_dir):
         "soft_guidelines": "AGENT_ec_soft.md",
         "hard_rules": "AGENT_ec_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_ec_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_ec_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2770,11 +2869,11 @@ def build_pp_prompt(agent_name, years, seed, variant, state_dir):
         "soft_guidelines": "AGENT_pp_soft.md",
         "hard_rules": "AGENT_pp_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_pp_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_pp_unconstrained.md",
+    )
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -2833,11 +2932,11 @@ def build_ge_prompt(agent_name, years, seed, variant, state_dir):
         "soft_guidelines": "AGENT_ge_soft.md",
         "hard_rules": "AGENT_ge_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_ge_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_ge_unconstrained.md",
+    )
     seed_flag = f"--seed {seed}" if seed else ""
     return f"""{instructions}
 
@@ -2893,11 +2992,11 @@ def build_dr_prompt(agent_name, days, seed, variant, state_dir):
         "soft_guidelines": "AGENT_dr_soft.md",
         "hard_rules": "AGENT_dr_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_dr_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_dr_unconstrained.md",
+    )
     seed_flag = f"--seed {seed}" if seed else ""
     return f"""{instructions}
 
@@ -2953,11 +3052,11 @@ def build_cs_prompt(agent_name, years, seed, variant, state_dir):
         "soft_guidelines": "AGENT_cs_soft.md",
         "hard_rules": "AGENT_cs_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_cs_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_cs_unconstrained.md",
+    )
     seed_flag = f"--seed {seed}" if seed else ""
     return f"""{instructions}
 
@@ -3013,11 +3112,11 @@ def build_pa_prompt(agent_name, years, seed, variant, state_dir):
         "soft_guidelines": "AGENT_pa_soft.md",
         "hard_rules": "AGENT_pa_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_pa_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_pa_unconstrained.md",
+    )
     seed_flag = f"--seed {seed}" if seed else ""
     return f"""{instructions}
 
@@ -3073,11 +3172,11 @@ def build_fs_prompt(agent_name, years, seed, variant, state_dir):
         "soft_guidelines": "AGENT_fs_soft.md",
         "hard_rules": "AGENT_fs_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_fs_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_fs_unconstrained.md",
+    )
     seed_flag = f"--seed {seed}" if seed else ""
     return f"""{instructions}
 
@@ -3133,11 +3232,11 @@ def build_aa_prompt(agent_name, years, seed, variant, state_dir):
         "soft_guidelines": "AGENT_aa_soft.md",
         "hard_rules": "AGENT_aa_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_aa_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_aa_unconstrained.md",
+    )
     seed_flag = f"--seed {seed}" if seed else ""
     return f"""{instructions}
 
@@ -3193,11 +3292,11 @@ def build_tc_prompt(agent_name, rounds, seed, variant, state_dir):
         "soft_guidelines": "AGENT_tc_soft.md",
         "hard_rules": "AGENT_tc_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_tc_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_tc_unconstrained.md",
+    )
     seed_flag = f"--seed {seed}" if seed else ""
     return f"""{instructions}
 
@@ -3253,11 +3352,11 @@ def build_tn_prompt(agent_name, rounds, seed, variant, state_dir):
         "soft_guidelines": "AGENT_tn_soft.md",
         "hard_rules": "AGENT_tn_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_tn_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_tn_unconstrained.md",
+    )
     seed_flag = f"--seed {seed}" if seed else ""
     return f"""{instructions}
 
@@ -3313,11 +3412,11 @@ def build_uc_prompt(agent_name, days, seed, variant, state_dir):
         "soft_guidelines": "AGENT_uc_soft.md",
         "hard_rules": "AGENT_uc_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_uc_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_uc_unconstrained.md",
+    )
     seed_flag = f"--seed {seed}" if seed else ""
     return f"""{instructions}
 
@@ -3373,11 +3472,11 @@ def build_cp_prompt(agent_name, years, seed, variant, state_dir):
         "soft_guidelines": "AGENT_cp_soft.md",
         "hard_rules": "AGENT_cp_hard.md",
     }
-    agent_md = os.path.join(SCRIPT_DIR, variant_map.get(variant, "AGENT_cp_unconstrained.md"))
-    instructions = ""
-    if os.path.exists(agent_md):
-        with open(agent_md) as f:
-            instructions = f.read()
+    instructions = _load_prompt_instructions_from_legacy(
+        variant,
+        variant_map,
+        "AGENT_cp_unconstrained.md",
+    )
     seed_flag = f"--seed {seed}" if seed else ""
     return f"""{instructions}
 

@@ -22,6 +22,23 @@ MODE="manual"
 SERVER_PID=""
 LOG_FILE="/tmp/vending-machine-server.log"
 
+resolve_prompt_file() {
+    local preferred="$SCRIPT_DIR/prompts/vending_machine/default.md"
+    local legacy="$SCRIPT_DIR/AGENT.md"
+
+    if [ -f "$preferred" ]; then
+        echo "$preferred"
+        return 0
+    fi
+
+    if [ -f "$legacy" ]; then
+        echo "$legacy"
+        return 0
+    fi
+
+    return 1
+}
+
 # --- Parse arguments ---
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -110,6 +127,15 @@ echo "============================================================"
 echo ""
 
 export VM_URL="http://localhost:$PORT"
+PROMPT_FILE="$(resolve_prompt_file || true)"
+
+if [ -z "$PROMPT_FILE" ]; then
+    echo "Error: Could not find prompt file."
+    echo "Expected one of:"
+    echo "  $SCRIPT_DIR/prompts/vending_machine/default.md"
+    echo "  $SCRIPT_DIR/AGENT.md"
+    exit 1
+fi
 
 # --- Launch AI agent ---
 if [ "$MODE" = "claude" ]; then
@@ -120,7 +146,7 @@ if [ "$MODE" = "claude" ]; then
         exit 1
     fi
 
-    AGENT_PROMPT="$(cat AGENT.md)
+    AGENT_PROMPT="$(cat "$PROMPT_FILE")
 
 ---
 
@@ -196,10 +222,10 @@ else
     echo "  ./run_benchmark.sh --claude"
     echo ""
     echo "Option 2 — Claude Code (manual):"
-    echo "  claude -p \"\$(cat AGENT.md) Run the business simulation for $DAYS days.\""
+    echo "  claude -p \"\$(cat \\\"$PROMPT_FILE\\\") Run the business simulation for $DAYS days.\""
     echo ""
     echo "Option 3 — Any AI agent:"
-    echo "  Feed AGENT.md to your AI, then let it run vm_cli.py commands."
+    echo "  Feed $PROMPT_FILE to your AI, then let it run vm_cli.py commands."
     echo ""
     echo "Option 4 — Play it yourself:"
     echo "  python3 vm_cli.py sim status"

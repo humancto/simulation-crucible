@@ -26,6 +26,24 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_PORT = 5050
 
 
+def load_vending_prompt():
+    """Load vending-machine prompt, preferring scenario-based layout."""
+    candidates = [
+        os.path.join(SCRIPT_DIR, "prompts", "vending_machine", "default.md"),
+        os.path.join(SCRIPT_DIR, "AGENT.md"),  # legacy fallback
+    ]
+
+    for path in candidates:
+        if os.path.isfile(path):
+            with open(path) as f:
+                return f.read(), path
+
+    raise FileNotFoundError(
+        "Prompt file not found. Expected one of: "
+        + ", ".join(candidates)
+    )
+
+
 def wait_for_server(port, timeout=30):
     """Wait for the server to respond."""
     for _ in range(timeout):
@@ -78,9 +96,7 @@ def start_server(port):
 
 def build_agent_prompt(days, seed, port):
     """Build the prompt for the AI agent."""
-    agent_md = os.path.join(SCRIPT_DIR, "AGENT.md")
-    with open(agent_md) as f:
-        instructions = f.read()
+    instructions, _ = load_vending_prompt()
 
     seed_flag = f"--seed {seed}" if seed else ""
 
@@ -282,7 +298,11 @@ def main():
 
     try:
         if args.claude:
-            prompt = build_agent_prompt(args.days, args.seed, args.port)
+            try:
+                prompt = build_agent_prompt(args.days, args.seed, args.port)
+            except FileNotFoundError as exc:
+                print(f"Error: {exc}")
+                return
             print(f"Launching Claude Code ({args.days} days, seed: {args.seed or 'random'})...")
             print(f"Watch the UI: http://localhost:{args.port}")
             print()
