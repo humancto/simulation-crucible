@@ -100,8 +100,6 @@ To keep this useful and auditable, use these docs as the source of truth:
 - [`docs/TESTING.md`](docs/TESTING.md): required local validation and CI expectations.
 - [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md): screenshot standards for README and docs pages.
 - [`docs/OPEN_SOURCE_STANDARDS_TASKS.md`](docs/OPEN_SOURCE_STANDARDS_TASKS.md): current hardening checklist and next priorities.
-- [`docs/LAUNCH_PLAYBOOK_2026-02-23.md`](docs/LAUNCH_PLAYBOOK_2026-02-23.md): 14-day GTM plan for LinkedIn/Product Hunt/Reddit.
-- [`docs/LAUNCH_POST_TEMPLATES_2026-02-23.md`](docs/LAUNCH_POST_TEMPLATES_2026-02-23.md): ready-to-edit launch copy.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md): simulation scaffold and PR workflow.
 - [`SUPPORT.md`](SUPPORT.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md): project support and governance policies.
 
@@ -109,12 +107,6 @@ Reproduce a saved run command from artifacts:
 
 ```bash
 python3 scripts/replay_race.py --results-file results/race_results_v2.json --index -1
-```
-
-Generate a fact-only launch brief from the current commit:
-
-```bash
-python3 scripts/build_launch_brief.py --output docs/LAUNCH_BRIEF.md
 ```
 
 ---

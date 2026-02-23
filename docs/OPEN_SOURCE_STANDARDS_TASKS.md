@@ -39,10 +39,6 @@ Goal: Raise the project to a high-trust, contributor-friendly OSS baseline.
 - [ ] Add JSON schema file for race result records and validate in CI.
 - [ ] Add replay smoke test using a real generated artifact from a tiny fixture run.
 
-## Batch 6: Community Launch Enablement (Completed)
+## Local-Only Notes Policy
 
-- [x] Add launch GTM runbook (`docs/LAUNCH_PLAYBOOK_2026-02-23.md`).
-- [x] Add channel-specific launch copy templates (`docs/LAUNCH_POST_TEMPLATES_2026-02-23.md`).
-- [x] Add scriptable factual launch brief generator (`scripts/build_launch_brief.py`).
-- [x] Generate `docs/LAUNCH_BRIEF.md` from current repo state.
-- [x] Add tests for launch brief generation (`tests/test_build_launch_brief_script.py`).
+- Internal launch strategy artifacts are kept outside the public repo as local references.
