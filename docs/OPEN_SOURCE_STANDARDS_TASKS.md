@@ -42,3 +42,9 @@ Goal: Raise the project to a high-trust, contributor-friendly OSS baseline.
 ## Local-Only Notes Policy
 
 - Internal launch strategy artifacts are kept outside the public repo as local references.
+
+## Batch 5.3: Config Extraction (Completed)
+
+- [x] Extract CLI argument parsing and config prep into `race/config.py`.
+- [x] Replace inline simulation flag wiring with shared `sim_flags` mapping.
+- [x] Add config parser tests in `tests/test_race_config.py`.

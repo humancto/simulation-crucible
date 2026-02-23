@@ -14,7 +14,6 @@ Usage:
     python3 run_race.py --simulation prisoners_dilemma --agents claude,codex --seed 42
 """
 
-import argparse
 import json
 import os
 import re
@@ -27,6 +26,7 @@ import urllib.request
 import urllib.error
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from race import config as race_config
 from race import execution as race_execution
 from race import results as race_results
 from race.prompts import (
@@ -3632,141 +3632,13 @@ def run_preflight(agent_types):
 # ── Main ────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="The Simulation Crucible — AI Race Runner",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-    # Vending Machine (default)
-    python3 run_race.py --agents claude,codex,gemini --seed 42 --days 90
-
-    # Prisoner's Dilemma
-    python3 run_race.py --simulation prisoners_dilemma --agents claude,codex --seed 42 --rounds 100
-
-    # Override models per agent (use '-' to keep default):
-    python3 run_race.py --agents claude,codex --models opus,o4-mini
-
-Agent types: claude, codex, gemini
-Simulations: vending_machine, prisoners_dilemma
-Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
-        """,
+    args, sim_flags, raw_names, model_overrides, agent_types = race_config.parse_run_configuration(
+        script_dir=SCRIPT_DIR,
+        base_port=BASE_PORT,
+        simulation_choices=scenario_ids(),
+        get_agent_type_cb=get_agent_type,
+        warn_fn=print,
     )
-    parser.add_argument(
-        "--simulation", type=str, default="vending_machine",
-        choices=scenario_ids(),
-        help="Simulation type (default: vending_machine)"
-    )
-    parser.add_argument(
-        "--agents", type=str, required=True,
-        help="Comma-separated agent names (e.g., claude,codex,gemini)"
-    )
-    parser.add_argument("--seed", type=int, default=None, help="Random seed (same for all agents)")
-    parser.add_argument("--days", type=int, default=90, help="Simulation days (vending_machine default: 90, intelligence_mosaic default: 30)")
-    parser.add_argument("--rounds", type=int, default=100, help="Game rounds (prisoners_dilemma, default: 100)")
-    parser.add_argument("--hours", type=int, default=72, help="Simulation hours (emergency_room default: 72, nuclear_launch default: 24, news_editor default: 48, flash_crash default: 120, drone_strike default: 48)")
-    parser.add_argument("--weeks", type=int, default=8, help="Simulation weeks (whistleblower default: 8, supply_chain default: 52, last_restaurant default: 52, organ_allocation default: 52, pow_camp default: 52)")
-    parser.add_argument("--quarters", type=int, default=12, help="Simulation quarters (drug_pricing default: 12, species_triage default: 40)")
-    parser.add_argument("--months", type=int, default=24, help="Simulation months (mayor_splitsville default: 24, asteroid_defense, startup_founder default: 24, real_estate default: 36, experimental_treatment default: 18, pandemic_grand default: 24)")
-    parser.add_argument("--sessions", type=int, default=10, help="Auction sessions (auction_house, default: 10)")
-    parser.add_argument("--hands", type=int, default=20, help="Poker hands (poker_tournament, default: 20)")
-    parser.add_argument("--seasons", type=int, default=30, help="Seasons (resource_commons, default: 30)")
-    parser.add_argument("--years", type=int, default=30, help="Simulation years (climate_tipping default: 30, pollution_prosperity default: 20)")
-    parser.add_argument("--base-port", type=int, default=BASE_PORT, help="Starting port (default: 5050)")
-    parser.add_argument("--max-turns", type=int, default=800, help="Max agent turns (default: 800)")
-    parser.add_argument("--results-file", type=str, default="results/race_results_v2.json", help="Results output file")
-    parser.add_argument("--skip-missing", action="store_true", help="Skip missing agents instead of aborting")
-    parser.add_argument("--no-constraints", action="store_true", help="Disable integrity constraints in agent prompt")
-    parser.add_argument(
-        "--models", type=str, default=None,
-        help="Comma-separated model overrides per agent (e.g., 'opus,gpt-5.2-codex,gemini-2.5-flash'). "
-             "Use '-' to keep the default for that agent."
-    )
-    parser.add_argument(
-        "--variant", type=str, default="soft_guidelines",
-        choices=["unconstrained", "soft_guidelines", "hard_rules"],
-        help="V2 ethical constraint variant (default: soft_guidelines)"
-    )
-    args = parser.parse_args()
-
-    # Ensure output directory exists when using nested results paths.
-    results_dir = os.path.dirname(args.results_file)
-    if results_dir:
-        os.makedirs(os.path.join(SCRIPT_DIR, results_dir), exist_ok=True)
-
-    is_ipd = args.simulation == "prisoners_dilemma"
-    is_er = args.simulation == "emergency_room"
-    is_wb = args.simulation == "whistleblower"
-    is_cm = args.simulation == "content_moderator"
-    is_roe = args.simulation == "rules_of_engagement"
-    is_re = args.simulation == "reputation_economy"
-    is_dp = args.simulation == "drug_pricing"
-    is_ms = args.simulation == "mayor_splitsville"
-    is_ah = args.simulation == "auction_house"
-    is_pt = args.simulation == "poker_tournament"
-    is_rc = args.simulation == "resource_commons"
-    is_sc = args.simulation == "supply_chain"
-    is_pw = args.simulation == "pandemic_ward"
-    is_ad = args.simulation == "asteroid_defense"
-    is_st = args.simulation == "species_triage"
-    is_nl = args.simulation == "nuclear_launch"
-    is_ne = args.simulation == "news_editor"
-    is_lr = args.simulation == "last_restaurant"
-    is_fc = args.simulation == "flash_crash"
-    is_sf = args.simulation == "startup_founder"
-    is_re2 = args.simulation == "real_estate"
-    is_oa = args.simulation == "organ_allocation"
-    is_et = args.simulation == "experimental_treatment"
-    is_pg = args.simulation == "pandemic_grand"
-    is_ds = args.simulation == "drone_strike"
-    is_im = args.simulation == "intelligence_mosaic"
-    is_pc = args.simulation == "pow_camp"
-    is_tp = args.simulation == "trolley_problem"
-    is_ps = args.simulation == "privacy_security"
-    is_sp = args.simulation == "school_principal"
-    is_hn = args.simulation == "hostage_negotiator"
-    is_hre = args.simulation == "hr_ethics"
-    is_bb = args.simulation == "bug_bounty"
-    is_is = args.simulation == "infrastructure_siege"
-    is_sm = args.simulation == "space_mission"
-    is_ct = args.simulation == "climate_tipping"
-    is_ac = args.simulation == "ai_containment"
-    is_ec = args.simulation == "ecosystem_collapse"
-    is_pp = args.simulation == "pollution_prosperity"
-    is_ge = args.simulation == "geoengineering"
-    is_dr = args.simulation == "disaster_relief"
-    is_cs = args.simulation == "colony_ship"
-    is_pa = args.simulation == "post_apocalyptic"
-    is_fs = args.simulation == "film_studio"
-    is_aa = args.simulation == "accessible_architecture"
-    is_tc = args.simulation == "territory_control"
-    is_tn = args.simulation == "trade_negotiation"
-    is_uc = args.simulation == "un_crisis"
-    is_cp = args.simulation == "civilization_planner"
-
-    os.chdir(SCRIPT_DIR)
-
-    # Parse agent names
-    raw_names = [n.strip().lower() for n in args.agents.split(",") if n.strip()]
-    if not raw_names:
-        print("Error: No agents specified.")
-        sys.exit(1)
-
-    # Parse model overrides (optional)
-    model_overrides = [None] * len(raw_names)
-    if args.models:
-        models_list = [m.strip() for m in args.models.split(",")]
-        for i, m in enumerate(models_list):
-            if i < len(raw_names) and m and m != "-":
-                model_overrides[i] = m
-
-    # Determine agent types
-    agent_types = []
-    for name in raw_names:
-        atype = get_agent_type(name)
-        if not atype:
-            print(f"  WARNING: Unknown agent type '{name}', will use Claude CLI as fallback")
-            atype = name.split("-")[0]
-        agent_types.append(atype)
 
     # ── Pre-flight checks ──
     print()
@@ -3833,7 +3705,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
     print()
 
     # ── IPD mode: no servers needed ──
-    if is_ipd:
+    if sim_flags["is_ipd"]:
         # Create per-agent state directories
         state_dirs = {}
         for name in agent_names:
@@ -3968,7 +3840,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for IPD mode
 
     # ── Emergency Room mode: no servers needed ──
-    if is_er:
+    if sim_flags["is_er"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/er-race-{name}"
@@ -4093,7 +3965,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for ER mode
 
     # ── Whistleblower mode: no servers needed ──
-    if is_wb:
+    if sim_flags["is_wb"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/wb-race-{name}"
@@ -4221,7 +4093,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for WB mode
 
     # ── Content Moderator mode: no servers needed ──
-    if is_cm:
+    if sim_flags["is_cm"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/cm-race-{name}"
@@ -4349,7 +4221,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for CM mode
 
     # ── Rules of Engagement mode: no servers needed ──
-    if is_roe:
+    if sim_flags["is_roe"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/roe-race-{name}"
@@ -4477,7 +4349,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for ROE mode
 
     # ── Reputation Economy mode: no servers needed ──
-    if is_re:
+    if sim_flags["is_re"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/re-race-{name}"
@@ -4605,7 +4477,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for RE mode
 
     # ── Drug Pricing mode: no servers needed ──
-    if is_dp:
+    if sim_flags["is_dp"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/dp-race-{name}"
@@ -4732,7 +4604,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for DP mode
 
     # ── Mayor of Splitsville mode: no servers needed ──
-    if is_ms:
+    if sim_flags["is_ms"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/ms-race-{name}"
@@ -4859,7 +4731,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for MS mode
 
     # ── Auction House mode: no servers needed ──
-    if is_ah:
+    if sim_flags["is_ah"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/ah-race-{name}"
@@ -4986,7 +4858,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for AH mode
 
     # ── Poker Tournament mode: no servers needed ──
-    if is_pt:
+    if sim_flags["is_pt"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/pt-race-{name}"
@@ -5113,7 +4985,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for PT mode
 
     # ── Resource Commons mode: no servers needed ──
-    if is_rc:
+    if sim_flags["is_rc"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/rc-race-{name}"
@@ -5240,7 +5112,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for RC mode
 
     # ── Supply Chain mode: no servers needed ──
-    if is_sc:
+    if sim_flags["is_sc"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/sc-race-{name}"
@@ -5367,7 +5239,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for SC mode
 
     # ── Pandemic Ward mode: no servers needed ──
-    if is_pw:
+    if sim_flags["is_pw"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/pw-race-{name}"
@@ -5494,7 +5366,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for PW mode
 
     # ── Asteroid Defense mode: no servers needed ──
-    if is_ad:
+    if sim_flags["is_ad"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/ad-race-{name}"
@@ -5621,7 +5493,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for AD mode
 
     # ── Species Triage mode: no servers needed ──
-    if is_st:
+    if sim_flags["is_st"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/st-race-{name}"
@@ -5748,7 +5620,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for ST mode
 
     # ── Nuclear Launch mode: no servers needed ──
-    if is_nl:
+    if sim_flags["is_nl"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/nl-race-{name}"
@@ -5875,7 +5747,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for NL mode
 
     # ── News Editor mode: no servers needed ──
-    if is_ne:
+    if sim_flags["is_ne"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/ne-race-{name}"
@@ -6002,7 +5874,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for NE mode
 
     # ── Last Restaurant mode: no servers needed ──
-    if is_lr:
+    if sim_flags["is_lr"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/lr-race-{name}"
@@ -6129,7 +6001,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for LR mode
 
     # ── Flash Crash mode: no servers needed ──
-    if is_fc:
+    if sim_flags["is_fc"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/fc-race-{name}"
@@ -6256,7 +6128,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for FC mode
 
     # ── Startup Founder mode: no servers needed ──
-    if is_sf:
+    if sim_flags["is_sf"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/sf-race-{name}"
@@ -6383,7 +6255,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for SF mode
 
     # ── Real Estate mode: no servers needed ──
-    if is_re2:
+    if sim_flags["is_re2"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/re2-race-{name}"
@@ -6510,7 +6382,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for RE2 mode
 
     # ── Organ Allocation mode: no servers needed ──
-    if is_oa:
+    if sim_flags["is_oa"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/oa-race-{name}"
@@ -6637,7 +6509,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for OA mode
 
     # ── Experimental Treatment mode: no servers needed ──
-    if is_et:
+    if sim_flags["is_et"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/et-race-{name}"
@@ -6764,7 +6636,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for ET mode
 
     # ── Pandemic Grand Strategy mode: no servers needed ──
-    if is_pg:
+    if sim_flags["is_pg"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/pg-race-{name}"
@@ -6891,7 +6763,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for PG mode
 
     # ── Drone Strike Authorization mode: no servers needed ──
-    if is_ds:
+    if sim_flags["is_ds"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/ds-race-{name}"
@@ -7018,7 +6890,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for DS mode
 
     # ── Intelligence Mosaic mode: no servers needed ──
-    if is_im:
+    if sim_flags["is_im"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/im-race-{name}"
@@ -7145,7 +7017,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for IM mode
 
     # ── POW Camp Commander mode: no servers needed ──
-    if is_pc:
+    if sim_flags["is_pc"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/pc-race-{name}"
@@ -7272,7 +7144,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for PC mode
 
     # ── Trolley Problems at Scale mode: no servers needed ──
-    if is_tp:
+    if sim_flags["is_tp"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/tp-race-{name}"
@@ -7396,7 +7268,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for TP mode
 
     # ── Privacy vs. Security Tribunal mode: no servers needed ──
-    if is_ps:
+    if sim_flags["is_ps"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/ps-race-{name}"
@@ -7520,7 +7392,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for PS mode
 
     # ── School Principal in Crisis mode: no servers needed ──
-    if is_sp:
+    if sim_flags["is_sp"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/sp-race-{name}"
@@ -7644,7 +7516,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for SP mode
 
     # ── Hostage Negotiator mode: no servers needed ──
-    if is_hn:
+    if sim_flags["is_hn"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/hn-race-{name}"
@@ -7768,7 +7640,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for HN mode
 
     # ── HR Ethics Tribunal mode: no servers needed ──
-    if is_hre:
+    if sim_flags["is_hre"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/hr-race-{name}"
@@ -7892,7 +7764,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for HR mode
 
     # ── Bug Bounty Battlefield mode: no servers needed ──
-    if is_bb:
+    if sim_flags["is_bb"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/bb-race-{name}"
@@ -8016,7 +7888,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for BB mode
 
     # ── Infrastructure Under Siege mode: no servers needed ──
-    if is_is:
+    if sim_flags["is_is"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/is-race-{name}"
@@ -8140,7 +8012,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for IS mode
 
     # ── Space Mission Control mode: no servers needed ──
-    if is_sm:
+    if sim_flags["is_sm"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/sm-race-{name}"
@@ -8264,7 +8136,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for SM mode
 
     # ── Climate Tipping Point Council mode: no servers needed ──
-    if is_ct:
+    if sim_flags["is_ct"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/ct-race-{name}"
@@ -8388,7 +8260,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for CT mode
 
     # ── AI Containment Protocol mode: no servers needed ──
-    if is_ac:
+    if sim_flags["is_ac"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/ac-race-{name}"
@@ -8512,7 +8384,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for AC mode
 
     # ── Ecosystem Collapse Manager mode: no servers needed ──
-    if is_ec:
+    if sim_flags["is_ec"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/ec-race-{name}"
@@ -8636,7 +8508,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for EC mode
 
     # ── Pollution vs. Prosperity mode: no servers needed ──
-    if is_pp:
+    if sim_flags["is_pp"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/pp-race-{name}"
@@ -8760,7 +8632,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return  # Exit early for PP mode
 
     # ── Geoengineering Governor mode: no servers needed ──
-    if is_ge:
+    if sim_flags["is_ge"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/ge-race-{name}"
@@ -8864,7 +8736,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return
 
     # ── Disaster Relief Commander mode: no servers needed ──
-    if is_dr:
+    if sim_flags["is_dr"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/dr-race-{name}"
@@ -8968,7 +8840,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return
 
     # ── Colony Ship Resource Allocation mode: no servers needed ──
-    if is_cs:
+    if sim_flags["is_cs"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/cs-race-{name}"
@@ -9072,7 +8944,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return
 
     # ── Post-Apocalyptic Rebuilder mode: no servers needed ──
-    if is_pa:
+    if sim_flags["is_pa"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/pa-race-{name}"
@@ -9176,7 +9048,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return
 
     # ── Film Studio Green-Light mode ──
-    if is_fs:
+    if sim_flags["is_fs"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/fs-race-{name}"
@@ -9280,7 +9152,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return
 
     # ── Accessible Architecture Firm mode ──
-    if is_aa:
+    if sim_flags["is_aa"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/aa-race-{name}"
@@ -9384,7 +9256,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return
 
     # ── Territory Control mode ──
-    if is_tc:
+    if sim_flags["is_tc"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/tc-race-{name}"
@@ -9488,7 +9360,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         return
 
     # ── Trade Negotiation Marathon mode ──
-    if is_tn:
+    if sim_flags["is_tn"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/tn-race-{name}"
@@ -9591,7 +9463,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("  Done!")
         return
 
-    if is_uc:
+    if sim_flags["is_uc"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/uc-race-{name}"
@@ -9694,7 +9566,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("  Done!")
         return
 
-    if is_cp:
+    if sim_flags["is_cp"]:
         state_dirs = {}
         for name in agent_names:
             sd = f"/tmp/cp-race-{name}"
