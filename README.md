@@ -103,6 +103,12 @@ To keep this useful and auditable, use these docs as the source of truth:
 - [`CONTRIBUTING.md`](CONTRIBUTING.md): simulation scaffold and PR workflow.
 - [`SUPPORT.md`](SUPPORT.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md): project support and governance policies.
 
+Reproduce a saved run command from artifacts:
+
+```bash
+python3 scripts/replay_race.py --results-file results/race_results_v2.json --index -1
+```
+
 ---
 
 ## Simulations

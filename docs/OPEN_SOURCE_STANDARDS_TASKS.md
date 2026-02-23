@@ -27,7 +27,14 @@ Goal: Raise the project to a high-trust, contributor-friendly OSS baseline.
 
 ## Batch 4: Next Priority (Recommended)
 
-- [ ] Add run manifest schema (`commit_sha`, prompt hash, model id, seed policy).
-- [ ] Add schema validation tests for result artifacts.
-- [ ] Add a reproducibility command to replay published runs.
-- [ ] Add a docs consistency CI check (live simulation list vs registry).
+- [x] Add run manifest schema (`commit_sha`, prompt hash, model id, seed policy).
+- [x] Add schema validation tests for result artifacts.
+- [x] Add a reproducibility command to replay published runs.
+- [x] Add a docs consistency CI check (live simulation list vs registry).
+
+## Batch 5: Next Priority (Recommended)
+
+- [ ] Refactor race record construction into a shared helper to remove branch duplication in `run_race.py`.
+- [ ] Emit explicit model override metadata per agent (not only detected defaults).
+- [ ] Add JSON schema file for race result records and validate in CI.
+- [ ] Add replay smoke test using a real generated artifact from a tiny fixture run.

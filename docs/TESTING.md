@@ -24,6 +24,16 @@ pytest -q tests/test_*_cli.py
 pytest -q tests/test_run_race_results.py
 ```
 
+## Replay a Published Record
+
+Use the replay helper to reconstruct a prior run command from saved artifacts:
+
+```bash
+python3 scripts/replay_race.py --results-file results/race_results_v2.json --index -1
+```
+
+Add `--execute` to run it directly, or `--show-manifest` to inspect metadata.
+
 ## Test Strategy
 
 - Keep contract tests stable and fast.

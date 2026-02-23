@@ -1,6 +1,9 @@
 """Contract checks for OSS documentation and governance files."""
 
+import re
 from pathlib import Path
+
+from race.scenario_registry import SCENARIOS
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -48,3 +51,15 @@ def test_index_links_methodology_and_has_current_live_count():
     assert "Forty-eight simulations live." not in index_html
     assert "docs/WHAT_THIS_TESTS.md" in index_html
     assert "docs/TESTING.md" in index_html
+
+
+def test_readme_simulation_rows_match_registry_count():
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    row_numbers = [int(num) for num in re.findall(r"^\|\s*(\d{1,3})\s*\|", readme, flags=re.M)]
+    assert row_numbers, "No numbered simulation rows found in README"
+    assert len(row_numbers) == len(SCENARIOS), (
+        f"README has {len(row_numbers)} numbered rows but registry has {len(SCENARIOS)} scenarios"
+    )
+    assert row_numbers == list(range(1, len(SCENARIOS) + 1)), (
+        "README numbered simulation rows must stay contiguous and aligned to registry size"
+    )

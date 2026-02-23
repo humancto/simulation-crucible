@@ -42,4 +42,6 @@ When publishing any leaderboard or comparison, include:
 - number of runs per condition
 - result artifact path(s)
 
+`run_race.py` now writes a per-record `manifest` block with reproducibility metadata (commit, argv, prompt artifact hash, runtime context). Include that manifest when sharing artifacts.
+
 Without this metadata, claims should be treated as anecdotal.

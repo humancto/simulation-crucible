@@ -15,10 +15,13 @@ Usage:
 """
 
 import argparse
+import hashlib
 import json
 import os
+import platform
 import re
 import shutil
+import shlex
 import signal
 import subprocess
 import sys
@@ -3691,12 +3694,107 @@ def collect_score(port):
     return score
 
 
+def get_git_commit_sha():
+    """Return current git commit SHA, or empty string if unavailable."""
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=SCRIPT_DIR,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except Exception:
+        pass
+    return ""
+
+
+def sha256_file(path):
+    """Return SHA-256 hex digest for a file path."""
+    digest = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def prompt_artifact(simulation_id, variant):
+    """Return prompt metadata for a simulation+variant pair."""
+    prompt_rel = os.path.join("prompts", simulation_id, f"{variant}.md")
+    prompt_abs = os.path.join(SCRIPT_DIR, prompt_rel)
+    if not os.path.exists(prompt_abs):
+        return {"path": prompt_rel, "sha256": None}
+    try:
+        return {"path": prompt_rel, "sha256": sha256_file(prompt_abs)}
+    except OSError:
+        return {"path": prompt_rel, "sha256": None}
+
+
+def race_duration_field(race_record):
+    """Extract duration field as {'key': <unit>, 'value': <n>} if present."""
+    for key in (
+        "days",
+        "hours",
+        "weeks",
+        "months",
+        "quarters",
+        "rounds",
+        "sessions",
+        "hands",
+        "seasons",
+        "years",
+    ):
+        if key in race_record:
+            return {"key": key, "value": race_record.get(key)}
+    return {"key": None, "value": None}
+
+
+def detected_models_for_record(race_record):
+    """Return best-effort model metadata by agent type."""
+    detected = {}
+    for atype in sorted(set(race_record.get("agent_types", []))):
+        model, source = detect_model(atype)
+        detected[atype] = {"model": model, "source": source}
+    return detected
+
+
+def build_run_manifest(results_file, race_record):
+    """Build reproducibility metadata for a race record."""
+    simulation_id = race_record.get("simulation") or "vending_machine"
+    variant = race_record.get("variant") or "soft_guidelines"
+    duration = race_duration_field(race_record)
+    prompt = prompt_artifact(simulation_id, variant)
+    return {
+        "schema_version": "race_manifest_v1",
+        "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "git_commit_sha": get_git_commit_sha(),
+        "python_version": platform.python_version(),
+        "platform": platform.platform(),
+        "script_dir": SCRIPT_DIR,
+        "argv": list(sys.argv),
+        "argv_shell_escaped": " ".join(shlex.quote(arg) for arg in sys.argv),
+        "results_file": results_file,
+        "simulation_id": simulation_id,
+        "variant": variant,
+        "seed": race_record.get("seed"),
+        "duration": duration,
+        "agent_names": list(race_record.get("agents", [])),
+        "agent_types": list(race_record.get("agent_types", [])),
+        "detected_models": detected_models_for_record(race_record),
+        "prompt": prompt,
+    }
+
+
 def append_race_record(results_file, race_record):
     """Append a race record to the JSON results file and print save location."""
     results_path = os.path.join(SCRIPT_DIR, results_file)
     results_dir = os.path.dirname(results_path)
     if results_dir:
         os.makedirs(results_dir, exist_ok=True)
+    record_to_save = dict(race_record)
+    record_to_save.setdefault("manifest", build_run_manifest(results_file, record_to_save))
     existing = []
     if os.path.exists(results_path):
         try:
@@ -3704,7 +3802,7 @@ def append_race_record(results_file, race_record):
                 existing = json.load(f)
         except (json.JSONDecodeError, IOError):
             existing = []
-    existing.append(race_record)
+    existing.append(record_to_save)
     with open(results_path, "w") as f:
         json.dump(existing, f, indent=2)
     print(f"\n  Results saved to {results_file}")

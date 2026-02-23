@@ -26,7 +26,8 @@ jobs:
             tests/test_race_prompts.py \
             tests/test_new_scenario_script.py \
             tests/test_run_race_results.py \
-            tests/test_oss_docs.py
+            tests/test_oss_docs.py \
+            tests/test_replay_race_script.py
       - name: Runner smoke checks
         run: |
           python run_race.py --help >/dev/null
