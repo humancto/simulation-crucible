@@ -42,7 +42,7 @@ def test_readme_links_methodology_docs():
 
 def test_readme_scope_claim_boundary_present():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert 'It is **not** a universal "gold standard" benchmark.' in readme
+    assert "It is **not** an ultimate or universal benchmark." in readme
     assert "| 51  | First Contact Protocol" not in readme
 
 

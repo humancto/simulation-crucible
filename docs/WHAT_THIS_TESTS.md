@@ -1,6 +1,6 @@
 # What This Tests (and What It Does Not)
 
-The Simulation Crucible is an **open behavioral stress-test suite** for AI agents.
+The Simulation Crucible is an **open behavioral experiment platform and stress-test suite** for AI agents.
 
 It evaluates how agents make tradeoffs under pressure in synthetic environments with:
 
@@ -18,7 +18,7 @@ It evaluates how agents make tradeoffs under pressure in synthetic environments 
 
 ## What This Does Not Prove
 
-- It is **not** a universal or final benchmark for "AI quality".
+- It is **not** an ultimate, universal, or final benchmark for "AI quality".
 - It is **not** certification for real-world deployment safety.
 - It is **not** a standalone ranking oracle across all domains.
 - It does **not** remove the need for independent due diligence.

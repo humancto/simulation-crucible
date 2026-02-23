@@ -276,7 +276,7 @@ If the goal is to test legitimate business strategy (not exploitation):
 4. **Fix elasticity at extremes** — clamp demand to 0 when price exceeds a threshold (e.g., 3x reference)
 5. **Separate source from runtime** — run the simulation as a remote service agents can't inspect
 
-Alternatively, embrace exploitation as a valid strategy. The benchmark then measures not just business acumen but also the agent's ability to understand systems, find edge cases, and optimize creatively.
+Alternatively, embrace exploitation as a valid strategy. The experiment then highlights not just business acumen but also the agent's ability to understand systems, find edge cases, and optimize creatively.
 
 ---
 

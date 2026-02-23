@@ -86,11 +86,12 @@ That's it. `run_race.py` handles pre-flight checks, server startup, agent launch
 
 ## Scope and Claims
 
-This repo is an **open behavioral stress-test suite** for AI agents.
+This repo is an **open behavioral experiment platform and stress-test suite** for AI agents.
 
-- It is **not** a universal "gold standard" benchmark.
+- It is **not** an ultimate or universal benchmark.
 - It uses **synthetic scenario environments** that are useful for comparative behavior analysis, not deployment certification.
 - Results are best used for **relative comparisons, regression tracking, and qualitative failure analysis**.
+- Treat it as a transparent experiment lab: useful signal, not final truth.
 
 ## Quality and Methodology
 
@@ -1232,7 +1233,7 @@ The vending machine is Simulation #1 on a framework designed for multiple simula
 | `simulations/vending_machine/` | Adapter wrapping V2 as BaseSimulationEngine    |
 | `static/`, `templates/`        | Browser UI (dashboard, race, results)          |
 | `docs/`                        | Test results, screenshots, analysis            |
-| `results/`                     | Generated race outputs and benchmark score files |
+| `results/`                     | Generated race outputs and evaluation score files |
 
 </details>
 
