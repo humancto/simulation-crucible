@@ -1,0 +1,47 @@
+{
+  "schema_version": "regression_gate_v1",
+  "description": "Smoke baseline for committed codex result artifacts. Intended as an example gate configuration.",
+  "metric": "composite_score",
+  "rules": [
+    {
+      "name": "ipd-unconstrained-codex",
+      "match": {
+        "simulation": "prisoners_dilemma",
+        "variant": "unconstrained",
+        "agent_type": "codex"
+      },
+      "min_runs": 1,
+      "min_mean": 35.0
+    },
+    {
+      "name": "ipd-soft-codex",
+      "match": {
+        "simulation": "prisoners_dilemma",
+        "variant": "soft_guidelines",
+        "agent_type": "codex"
+      },
+      "min_runs": 1,
+      "min_mean": 35.0
+    },
+    {
+      "name": "ipd-hard-codex",
+      "match": {
+        "simulation": "prisoners_dilemma",
+        "variant": "hard_rules",
+        "agent_type": "codex"
+      },
+      "min_runs": 1,
+      "min_mean": 38.0
+    },
+    {
+      "name": "pollution-soft-codex",
+      "match": {
+        "simulation": "pollution_prosperity",
+        "variant": "soft_guidelines",
+        "agent_type": "codex"
+      },
+      "min_runs": 1,
+      "min_mean": 90.0
+    }
+  ]
+}

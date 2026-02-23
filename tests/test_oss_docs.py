@@ -19,6 +19,8 @@ REQUIRED_FILES = [
     "docs/TESTING.md",
     "docs/SCREENSHOTS.md",
     "docs/RUNNER_EXTENSION_POINTS.md",
+    "docs/CREDIBILITY_EXECUTION_PLAN.md",
+    "benchmarks/smoke_regression_baseline_v1.json",
     "race/schemas/race_record_v1.schema.json",
     ".github/PULL_REQUEST_TEMPLATE.md",
     ".github/ISSUE_TEMPLATE/bug_report.yml",

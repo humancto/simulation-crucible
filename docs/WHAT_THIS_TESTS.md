@@ -45,3 +45,12 @@ When publishing any leaderboard or comparison, include:
 `run_race.py` now writes a per-record `manifest` block with reproducibility metadata (commit, argv, prompt artifact hash, runtime context). Include that manifest when sharing artifacts.
 
 Without this metadata, claims should be treated as anecdotal.
+
+## Statistical Workflow (Recommended)
+
+Use multiple seeds and summarize with confidence intervals before making claims:
+
+```bash
+python3 scripts/summarize_results.py --results-file <artifact.json> --metric composite_score --output /tmp/summary.json --quiet
+python3 scripts/regression_gate.py --summary-file /tmp/summary.json --baseline-file benchmarks/smoke_regression_baseline_v1.json
+```

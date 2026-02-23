@@ -12,6 +12,7 @@ bash -n run_benchmark.sh
 pytest -q tests/test_scenario_registry.py tests/test_race_prompts.py tests/test_new_scenario_script.py
 pytest -q tests/test_race_config.py tests/test_race_preflight.py tests/test_race_local_mode.py tests/test_race_orchestrator.py tests/test_race_server_mode.py tests/test_race_scenario_io.py
 pytest -q tests/test_run_race_entrypoint.py
+pytest -q tests/test_summarize_results_script.py tests/test_regression_gate_script.py
 ```
 
 ## Full CLI Regression Suite
@@ -24,6 +25,24 @@ pytest -q tests/test_*_cli.py
 
 ```bash
 pytest -q tests/test_run_race_results.py tests/test_run_race_schema.py
+```
+
+## Statistical Summary and Regression Gate
+
+```bash
+python3 scripts/summarize_results.py \
+  --results-file results/smoke_interest_ipd_unconstrained_codex.json \
+  --results-file results/smoke_interest_ipd_soft_guidelines_codex.json \
+  --results-file results/smoke_interest_ipd_hard_rules_codex.json \
+  --results-file results/smoke_random_pollution_prosperity_codex.json \
+  --metric composite_score \
+  --group-by simulation,variant,agent_type \
+  --output results/smoke_summary.json \
+  --quiet
+
+python3 scripts/regression_gate.py \
+  --summary-file results/smoke_summary.json \
+  --baseline-file benchmarks/smoke_regression_baseline_v1.json
 ```
 
 ## Replay a Published Record

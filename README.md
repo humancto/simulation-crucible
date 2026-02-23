@@ -101,6 +101,7 @@ To keep this useful and auditable, use these docs as the source of truth:
 - [`docs/TESTING.md`](docs/TESTING.md): required local validation and CI expectations.
 - [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md): screenshot standards for README and docs pages.
 - [`docs/RUNNER_EXTENSION_POINTS.md`](docs/RUNNER_EXTENSION_POINTS.md): how to extend runner flow safely.
+- [`docs/CREDIBILITY_EXECUTION_PLAN.md`](docs/CREDIBILITY_EXECUTION_PLAN.md): contributor task map for statistical rigor and regression gating.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md): simulation scaffold and PR workflow.
 - [`SUPPORT.md`](SUPPORT.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md): project support and governance policies.
 
@@ -108,6 +109,24 @@ Reproduce a saved run command from artifacts:
 
 ```bash
 python3 scripts/replay_race.py --results-file results/race_results_v2.json --index -1
+```
+
+Quick statistical summary + gate flow:
+
+```bash
+python3 scripts/summarize_results.py \
+  --results-file results/smoke_interest_ipd_unconstrained_codex.json \
+  --results-file results/smoke_interest_ipd_soft_guidelines_codex.json \
+  --results-file results/smoke_interest_ipd_hard_rules_codex.json \
+  --results-file results/smoke_random_pollution_prosperity_codex.json \
+  --metric composite_score \
+  --group-by simulation,variant,agent_type \
+  --output results/smoke_summary.json \
+  --quiet
+
+python3 scripts/regression_gate.py \
+  --summary-file results/smoke_summary.json \
+  --baseline-file benchmarks/smoke_regression_baseline_v1.json
 ```
 
 ---
