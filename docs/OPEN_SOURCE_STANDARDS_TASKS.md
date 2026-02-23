@@ -48,3 +48,10 @@ Goal: Raise the project to a high-trust, contributor-friendly OSS baseline.
 - [x] Extract CLI argument parsing and config prep into `race/config.py`.
 - [x] Replace inline simulation flag wiring with shared `sim_flags` mapping.
 - [x] Add config parser tests in `tests/test_race_config.py`.
+
+## Batch 5.4: Preflight Extraction (Completed)
+
+- [x] Extract agent availability/auth/model preflight helpers into `race/preflight.py`.
+- [x] Keep compatibility wrappers in `run_race.py` to preserve existing monkeypatch/test seams.
+- [x] Replace inline final-agent filtering with a shared helper in `race/preflight.py`.
+- [x] Add preflight helper tests in `tests/test_race_preflight.py`.

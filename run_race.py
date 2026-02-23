@@ -17,7 +17,6 @@ Usage:
 import json
 import os
 import re
-import shutil
 import signal
 import subprocess
 import sys
@@ -28,6 +27,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from race import config as race_config
 from race import execution as race_execution
+from race import preflight as race_preflight
 from race import results as race_results
 from race.prompts import (
     load_prompt_instructions_from_legacy as _load_prompt_instructions_from_legacy_impl,
@@ -95,91 +95,18 @@ def get_agent_type(name):
 
 
 def check_agent_available(agent_type):
-    """Check if an agent CLI tool is installed and accessible.
-    Returns (available: bool, version: str, error: str).
-    """
-    defn = AGENT_DEFS.get(agent_type)
-    if not defn:
-        return False, "", f"Unknown agent type: {agent_type}"
-
-    binary = defn["binary"]
-
-    # Check if binary exists on PATH
-    if not shutil.which(binary):
-        return False, "", f"'{binary}' not found on PATH. Install it first."
-
-    # Try to get version
-    try:
-        result = subprocess.run(
-            defn["check_version"],
-            capture_output=True, text=True, timeout=15,
-        )
-        version = result.stdout.strip() or result.stderr.strip()
-        version = version[:80]  # truncate
-        return True, version, ""
-    except FileNotFoundError:
-        return False, "", f"'{binary}' not found."
-    except subprocess.TimeoutExpired:
-        # Binary exists but version check hung — still usable
-        return True, "(version unknown)", ""
-    except Exception as e:
-        return False, "", str(e)
+    """Check if an agent CLI tool is installed and accessible."""
+    return race_preflight.check_agent_available(AGENT_DEFS, agent_type)
 
 
 def check_api_key(agent_type):
     """Check if the expected API key env var is set."""
-    defn = AGENT_DEFS.get(agent_type)
-    if not defn:
-        return False, ""
-    key_name = defn.get("env_key", "")
-    if not key_name:
-        return True, ""
-    val = os.environ.get(key_name, "")
-    if val:
-        return True, key_name
-    return False, key_name
+    return race_preflight.check_api_key(AGENT_DEFS, agent_type)
 
 
 def detect_model(agent_type):
-    """Auto-detect the configured/available model for an agent CLI.
-    Returns (model_name, method) — method is how we found it.
-    """
-    if agent_type == "codex":
-        # Read from codex config file
-        for path in ["~/.codex/config.toml", "~/.config/codex/config.toml"]:
-            expanded = os.path.expanduser(path)
-            if os.path.exists(expanded):
-                try:
-                    with open(expanded) as f:
-                        for line in f:
-                            line = line.strip()
-                            if line.startswith("model") and "=" in line:
-                                model = line.split("=", 1)[1].strip().strip('"').strip("'")
-                                return model, f"from {path}"
-                except Exception:
-                    pass
-        return "o4-mini", "default fallback"
-
-    elif agent_type == "gemini":
-        # Read from gemini settings
-        settings_path = os.path.expanduser("~/.gemini/settings.json")
-        if os.path.exists(settings_path):
-            try:
-                with open(settings_path) as f:
-                    settings = json.load(f)
-                model = settings.get("model") or settings.get("defaultModel")
-                if model:
-                    return model, "from ~/.gemini/settings.json"
-            except Exception:
-                pass
-        # Try running gemini to see its default model
-        return "gemini-2.5-pro", "default"
-
-    elif agent_type == "claude":
-        # Claude Code uses its own model selection, no config needed
-        return "claude (auto)", "CLI default"
-
-    return "unknown", "not detected"
+    """Auto-detect configured/available model for an agent CLI."""
+    return race_preflight.detect_model(agent_type)
 
 
 def wait_for_server(port, timeout=30):
@@ -3595,38 +3522,14 @@ def append_race_record(results_file, race_record):
 
 def run_preflight(agent_types):
     """Check which agents are available. Returns list of (type, available, info)."""
-    print("  PRE-FLIGHT CHECKS")
-    print("  -----------------")
-
-    results = []
-    for atype in sorted(set(agent_types)):
-        defn = AGENT_DEFS.get(atype, {})
-        display = defn.get("display", atype)
-
-        available, version, error = check_agent_available(atype)
-        has_key, key_name = check_api_key(atype)
-        model, model_source = detect_model(atype)
-
-        if available:
-            print(f"  [OK]   {display:<20} {version}")
-            print(f"         Model: {model} ({model_source})")
-            if not has_key:
-                # Check if they might be using OAuth instead
-                if atype == "gemini":
-                    print(f"         Auth: OAuth (personal) — no API key needed")
-                elif atype == "codex":
-                    print(f"         Auth: checking login status...")
-                else:
-                    print(f"         WARNING: {key_name} not set — agent may fail to authenticate")
-            else:
-                print(f"         Auth: {key_name} set")
-            results.append((atype, True, model))
-        else:
-            print(f"  [MISS] {display:<20} {error}")
-            results.append((atype, False, error))
-
-    print()
-    return results
+    return race_preflight.run_preflight(
+        AGENT_DEFS,
+        agent_types,
+        check_agent_available_cb=check_agent_available,
+        check_api_key_cb=check_api_key,
+        detect_model_cb=detect_model,
+        print_fn=print,
+    )
 
 
 # ── Main ────────────────────────────────────────────────────────────────
@@ -3650,25 +3553,12 @@ def main():
 
     preflight = run_preflight(agent_types)
 
-    # Filter out unavailable agents (or abort)
-    missing_agents = []
-    for i, (atype, ok, error) in enumerate(preflight):
-        # Match this preflight result to all agents of this type
-        pass
-
-    # Build the final agent list
-    final_names = []
-    final_types = []
-    final_models = []
-    for i, (name, atype) in enumerate(zip(raw_names, agent_types)):
-        # Check if this agent type passed preflight
-        type_available = any(t == atype and ok for t, ok, _ in preflight)
-        if type_available:
-            final_names.append(name)
-            final_types.append(atype)
-            final_models.append(model_overrides[i] if i < len(model_overrides) else None)
-        else:
-            missing_agents.append((name, atype))
+    final_names, final_types, final_models, missing_agents = race_preflight.build_final_agent_lists(
+        raw_names=raw_names,
+        agent_types=agent_types,
+        model_overrides=model_overrides,
+        preflight_rows=preflight,
+    )
 
     if missing_agents:
         for name, atype in missing_agents:
