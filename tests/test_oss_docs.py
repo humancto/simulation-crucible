@@ -19,6 +19,7 @@ REQUIRED_FILES = [
     "docs/TESTING.md",
     "docs/SCREENSHOTS.md",
     "docs/OPEN_SOURCE_STANDARDS_TASKS.md",
+    "race/schemas/race_record_v1.schema.json",
     ".github/PULL_REQUEST_TEMPLATE.md",
     ".github/ISSUE_TEMPLATE/bug_report.yml",
     ".github/ISSUE_TEMPLATE/simulation_proposal.yml",

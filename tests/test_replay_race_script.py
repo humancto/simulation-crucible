@@ -4,7 +4,9 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
+import run_race
 
 ROOT = Path(__file__).resolve().parent.parent
 REPLAY_SCRIPT = ROOT / "scripts" / "replay_race.py"
@@ -80,3 +82,49 @@ def test_replay_skips_none_seed_and_duration_values(tmp_path):
     assert code == 0, stderr
     assert "--seed" not in stdout
     assert "--hours" not in stdout
+
+
+def test_replay_generated_artifact_from_runner_helpers(tmp_path, monkeypatch):
+    monkeypatch.setattr(run_race, "SCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr(run_race, "get_git_commit_sha", lambda: "deadbeef")
+    monkeypatch.setattr(run_race, "detect_model", lambda atype: (f"{atype}-model", "test"))
+    monkeypatch.setattr(
+        run_race.sys,
+        "argv",
+        [
+            "run_race.py",
+            "--agents",
+            "codex",
+            "--simulation",
+            "vending_machine",
+            "--days",
+            "7",
+            "--seed",
+            "42",
+            "--variant",
+            "soft_guidelines",
+        ],
+    )
+
+    prompt_file = tmp_path / "prompts" / "vending_machine" / "soft_guidelines.md"
+    prompt_file.parent.mkdir(parents=True, exist_ok=True)
+    prompt_file.write_text("prompt", encoding="utf-8")
+
+    args = SimpleNamespace(seed=42, variant="soft_guidelines", days=7)
+    record = run_race.build_race_record(
+        simulation_id="vending_machine",
+        args=args,
+        agent_names=["codex"],
+        agent_types=["codex"],
+        model_overrides=["o4-mini"],
+        results=[{"agent": "codex", "agent_type": "codex", "final_balance": 1}],
+    )
+    run_race.append_race_record("results/generated.json", record)
+
+    generated_path = tmp_path / "results" / "generated.json"
+    code, stdout, stderr = run_replay(["--results-file", str(generated_path), "--index", "0"])
+
+    assert code == 0, stderr
+    assert "python3 run_race.py --agents codex --simulation vending_machine" in stdout
+    assert "--days 7" in stdout
+    assert "--seed 42" in stdout

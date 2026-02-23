@@ -1,6 +1,7 @@
 """Tests for run_race result-file persistence helpers."""
 
 import json
+from types import SimpleNamespace
 
 import run_race
 
@@ -65,3 +66,25 @@ def test_append_race_record_recovers_from_invalid_json(tmp_path, monkeypatch):
     data = json.loads(out_file.read_text())
     assert data[0]["simulation"] == "fresh"
     assert data[0]["manifest"]["schema_version"] == "race_manifest_v1"
+
+
+def test_build_race_record_adds_model_metadata_to_record_and_results(monkeypatch):
+    monkeypatch.setattr(run_race, "detect_model", lambda atype: (f"{atype}-detected", "test"))
+    args = SimpleNamespace(seed=7, variant="hard_rules", days=12)
+    raw_results = [{"agent": "codex", "agent_type": "codex", "final_balance": 99}]
+
+    record = run_race.build_race_record(
+        simulation_id="vending_machine",
+        args=args,
+        agent_names=["codex"],
+        agent_types=["codex"],
+        model_overrides=["o4-mini"],
+        results=raw_results,
+    )
+
+    assert record["simulation"] == "vending_machine"
+    assert record["days"] == 12
+    assert record["agent_models"][0]["requested_model"] == "o4-mini"
+    assert record["agent_models"][0]["effective_model"] == "o4-mini"
+    assert record["results"][0]["effective_model"] == "o4-mini"
+    assert record["results"][0]["detected_model"] == "codex-detected"

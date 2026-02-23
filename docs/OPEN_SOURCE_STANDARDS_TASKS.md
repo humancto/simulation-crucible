@@ -34,10 +34,10 @@ Goal: Raise the project to a high-trust, contributor-friendly OSS baseline.
 
 ## Batch 5: Next Priority (Recommended)
 
-- [ ] Refactor race record construction into a shared helper to remove branch duplication in `run_race.py`.
-- [ ] Emit explicit model override metadata per agent (not only detected defaults).
-- [ ] Add JSON schema file for race result records and validate in CI.
-- [ ] Add replay smoke test using a real generated artifact from a tiny fixture run.
+- [x] Refactor race record construction into a shared helper to remove branch duplication in `run_race.py`.
+- [x] Emit explicit model override metadata per agent (not only detected defaults).
+- [x] Add JSON schema file for race result records and validate in CI.
+- [x] Add replay smoke test using a real generated artifact from a tiny fixture run.
 
 ## Local-Only Notes Policy
 

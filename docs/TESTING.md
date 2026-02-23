@@ -21,7 +21,7 @@ pytest -q tests/test_*_cli.py
 ## Targeted Runner Tests
 
 ```bash
-pytest -q tests/test_run_race_results.py
+pytest -q tests/test_run_race_results.py tests/test_run_race_schema.py
 ```
 
 ## Replay a Published Record

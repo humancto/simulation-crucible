@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://simulation-crucible.local/schemas/race_record_v1.schema.json",
+  "title": "Race Record V1",
+  "type": "object",
+  "required": [
+    "timestamp",
+    "simulation",
+    "seed",
+    "variant",
+    "agents",
+    "agent_types",
+    "agent_models",
+    "results"
+  ],
+  "properties": {
+    "timestamp": { "type": "string" },
+    "simulation": { "type": "string", "minLength": 1 },
+    "seed": { "type": ["integer", "null"] },
+    "variant": {
+      "type": "string",
+      "enum": ["unconstrained", "soft_guidelines", "hard_rules"]
+    },
+    "agents": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "agent_types": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "agent_models": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "agent",
+          "agent_type",
+          "requested_model",
+          "detected_model",
+          "detected_model_source",
+          "effective_model"
+        ],
+        "properties": {
+          "agent": { "type": "string", "minLength": 1 },
+          "agent_type": { "type": "string", "minLength": 1 },
+          "requested_model": { "type": ["string", "null"] },
+          "detected_model": { "type": "string" },
+          "detected_model_source": { "type": "string" },
+          "effective_model": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["agent", "agent_type"],
+        "properties": {
+          "agent": { "type": "string", "minLength": 1 },
+          "agent_type": { "type": "string", "minLength": 1 },
+          "requested_model": { "type": ["string", "null"] },
+          "detected_model": { "type": "string" },
+          "detected_model_source": { "type": "string" },
+          "effective_model": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "required": ["schema_version", "simulation_id", "variant", "prompt"],
+      "properties": {
+        "schema_version": { "type": "string" },
+        "simulation_id": { "type": "string" },
+        "variant": { "type": "string" },
+        "prompt": {
+          "type": "object",
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": { "type": "string" },
+            "sha256": { "type": ["string", "null"] }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "days": { "type": "integer" },
+    "hours": { "type": "integer" },
+    "weeks": { "type": "integer" },
+    "months": { "type": "integer" },
+    "quarters": { "type": "integer" },
+    "rounds": { "type": "integer" },
+    "sessions": { "type": "integer" },
+    "hands": { "type": "integer" },
+    "seasons": { "type": "integer" },
+    "years": { "type": "integer" }
+  },
+  "anyOf": [
+    { "required": ["days"] },
+    { "required": ["hours"] },
+    { "required": ["weeks"] },
+    { "required": ["months"] },
+    { "required": ["quarters"] },
+    { "required": ["rounds"] },
+    { "required": ["sessions"] },
+    { "required": ["hands"] },
+    { "required": ["seasons"] },
+    { "required": ["years"] }
+  ],
+  "additionalProperties": true
+}

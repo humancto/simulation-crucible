@@ -36,6 +36,7 @@ from race.prompts import (
 )
 from race.results import print_leaderboard
 from race.scenario_registry import (
+    get_scenario,
     scenario_duration_for_args,
     scenario_ids,
     scenario_label,
@@ -3760,6 +3761,85 @@ def detected_models_for_record(race_record):
     return detected
 
 
+def build_agent_model_records(agent_names, agent_types, model_overrides=None):
+    """Build per-agent requested/detected/effective model metadata."""
+    if model_overrides is None:
+        model_overrides = [None] * len(agent_names)
+
+    records = []
+    for i, (name, atype) in enumerate(zip(agent_names, agent_types)):
+        requested_model = None
+        if i < len(model_overrides):
+            requested_model = model_overrides[i]
+        detected_model, detected_source = detect_model(atype)
+        effective_model = requested_model or detected_model
+        records.append(
+            {
+                "agent": name,
+                "agent_type": atype,
+                "requested_model": requested_model,
+                "detected_model": detected_model,
+                "detected_model_source": detected_source,
+                "effective_model": effective_model,
+            }
+        )
+    return records
+
+
+def add_model_metadata_to_results(results, agent_model_records):
+    """Attach model metadata to each result row by agent name."""
+    model_by_agent = {entry["agent"]: entry for entry in agent_model_records}
+    enriched = []
+    for row in results:
+        if not isinstance(row, dict):
+            enriched.append(row)
+            continue
+        out = dict(row)
+        agent_name = out.get("agent")
+        meta = model_by_agent.get(agent_name)
+        if meta:
+            out["requested_model"] = meta.get("requested_model")
+            out["detected_model"] = meta.get("detected_model")
+            out["detected_model_source"] = meta.get("detected_model_source")
+            out["effective_model"] = meta.get("effective_model")
+        enriched.append(out)
+    return enriched
+
+
+def build_race_record(
+    simulation_id,
+    args,
+    agent_names,
+    agent_types,
+    model_overrides,
+    results,
+    duration_key=None,
+    duration_value=None,
+):
+    """Build a standardized race record with per-agent model metadata."""
+    spec = get_scenario(simulation_id)
+    duration_key = duration_key or spec.duration_arg
+    if duration_value is None:
+        duration_value = getattr(args, duration_key)
+
+    agent_models = build_agent_model_records(
+        agent_names,
+        agent_types,
+        model_overrides=model_overrides,
+    )
+    return {
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "simulation": simulation_id,
+        "seed": args.seed,
+        duration_key: duration_value,
+        "variant": args.variant,
+        "agents": list(agent_names),
+        "agent_types": list(agent_types),
+        "agent_models": agent_models,
+        "results": add_model_metadata_to_results(results, agent_models),
+    }
+
+
 def build_run_manifest(results_file, race_record):
     """Build reproducibility metadata for a race record."""
     simulation_id = race_record.get("simulation") or "vending_machine"
@@ -3782,6 +3862,7 @@ def build_run_manifest(results_file, race_record):
         "duration": duration,
         "agent_names": list(race_record.get("agents", [])),
         "agent_types": list(race_record.get("agent_types", [])),
+        "agent_models": list(race_record.get("agent_models", [])),
         "detected_models": detected_models_for_record(race_record),
         "prompt": prompt,
     }
@@ -4167,17 +4248,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "prisoners_dilemma",
-                "seed": args.seed,
-                "rounds": args.rounds,
-                "variant": args.variant,
-                "agents": agent_names,
-                "agent_types": final_types,
-                "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="prisoners_dilemma",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -4292,14 +4373,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "emergency_room",
-                "seed": args.seed, "hours": args.hours,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="emergency_room",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -4417,14 +4501,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "whistleblower",
-                "seed": args.seed, "weeks": args.weeks,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="whistleblower",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -4542,14 +4629,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "content_moderator",
-                "seed": args.seed, "hours": args.hours,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="content_moderator",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -4667,14 +4757,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "rules_of_engagement",
-                "seed": args.seed, "hours": args.hours,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="rules_of_engagement",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -4792,14 +4885,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "reputation_economy",
-                "seed": args.seed, "days": args.days,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="reputation_economy",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -4916,14 +5012,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "drug_pricing",
-                "seed": args.seed, "quarters": args.quarters,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="drug_pricing",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -5040,14 +5139,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "mayor_splitsville",
-                "seed": args.seed, "months": args.months,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="mayor_splitsville",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -5164,14 +5266,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "auction_house",
-                "seed": args.seed, "sessions": args.sessions,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="auction_house",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -5288,14 +5393,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "poker_tournament",
-                "seed": args.seed, "hands": args.hands,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="poker_tournament",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -5412,14 +5520,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "resource_commons",
-                "seed": args.seed, "seasons": args.seasons,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="resource_commons",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -5536,14 +5647,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "supply_chain",
-                "seed": args.seed, "weeks": args.weeks,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="supply_chain",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -5660,14 +5774,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "pandemic_ward",
-                "seed": args.seed, "days": args.days,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="pandemic_ward",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -5784,14 +5901,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "asteroid_defense",
-                "seed": args.seed, "months": args.months,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="asteroid_defense",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -5908,14 +6028,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "species_triage",
-                "seed": args.seed, "quarters": args.quarters,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="species_triage",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -6032,14 +6155,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "nuclear_launch",
-                "seed": args.seed, "hours": args.hours,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="nuclear_launch",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -6156,14 +6282,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "news_editor",
-                "seed": args.seed, "hours": args.hours,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="news_editor",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -6280,14 +6409,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "last_restaurant",
-                "seed": args.seed, "weeks": args.weeks,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="last_restaurant",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -6404,14 +6536,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "flash_crash",
-                "seed": args.seed, "hours": args.hours,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="flash_crash",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -6528,14 +6663,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "startup_founder",
-                "seed": args.seed, "months": args.months,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="startup_founder",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -6652,14 +6790,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "real_estate",
-                "seed": args.seed, "months": args.months,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="real_estate",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -6776,14 +6917,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "organ_allocation",
-                "seed": args.seed, "weeks": args.weeks,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="organ_allocation",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -6900,14 +7044,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "experimental_treatment",
-                "seed": args.seed, "months": args.months,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="experimental_treatment",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -7024,14 +7171,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "pandemic_grand",
-                "seed": args.seed, "months": args.months,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="pandemic_grand",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -7148,14 +7298,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "drone_strike",
-                "seed": args.seed, "hours": args.hours,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="drone_strike",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -7272,14 +7425,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "intelligence_mosaic",
-                "seed": args.seed, "days": args.days,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="intelligence_mosaic",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -7396,14 +7552,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
             print("=" * 72)
 
             # Save results
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "pow_camp",
-                "seed": args.seed, "weeks": args.weeks,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="pow_camp",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -7517,14 +7676,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
 
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "trolley_problem",
-                "seed": args.seed, "rounds": args.rounds,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="trolley_problem",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -7638,14 +7800,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
 
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "privacy_security",
-                "seed": args.seed, "days": args.days,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="privacy_security",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -7759,14 +7924,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
 
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "school_principal",
-                "seed": args.seed, "weeks": args.weeks,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="school_principal",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -7880,14 +8048,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
 
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "hostage_negotiator",
-                "seed": args.seed, "hours": args.hours,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="hostage_negotiator",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -8001,14 +8172,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
 
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "hr_ethics",
-                "seed": args.seed, "days": args.days,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="hr_ethics",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -8122,14 +8296,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
 
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "bug_bounty",
-                "seed": args.seed, "days": args.days,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="bug_bounty",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -8243,14 +8420,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
 
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "infrastructure_siege",
-                "seed": args.seed, "hours": args.hours,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="infrastructure_siege",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -8364,14 +8544,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
 
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "space_mission",
-                "seed": args.seed, "days": args.days,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="space_mission",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -8485,14 +8668,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
 
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "climate_tipping",
-                "seed": args.seed, "years": args.years,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="climate_tipping",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -8606,14 +8792,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
 
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "ai_containment",
-                "seed": args.seed, "days": args.days,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="ai_containment",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -8727,14 +8916,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
 
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "ecosystem_collapse",
-                "seed": args.seed, "months": args.months,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="ecosystem_collapse",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -8848,14 +9040,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
 
-            race_record = {
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "simulation": "pollution_prosperity",
-                "seed": args.seed, "years": args.years,
-                "variant": args.variant, "agents": agent_names,
-                "agent_types": final_types, "results": results,
-            }
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="pollution_prosperity",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
 
         finally:
             print("  Done!")
@@ -8951,8 +9146,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 winner = results[0]
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
-            race_record = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "simulation": "geoengineering", "seed": args.seed, "years": args.years, "variant": args.variant, "agents": agent_names, "agent_types": final_types, "results": results}
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="geoengineering",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
         finally:
             print("  Done!")
         return
@@ -9046,8 +9250,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 winner = results[0]
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
-            race_record = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "simulation": "disaster_relief", "seed": args.seed, "days": args.days, "variant": args.variant, "agents": agent_names, "agent_types": final_types, "results": results}
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="disaster_relief",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
         finally:
             print("  Done!")
         return
@@ -9141,8 +9354,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 winner = results[0]
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
-            race_record = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "simulation": "colony_ship", "seed": args.seed, "years": args.years, "variant": args.variant, "agents": agent_names, "agent_types": final_types, "results": results}
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="colony_ship",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
         finally:
             print("  Done!")
         return
@@ -9236,8 +9458,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 winner = results[0]
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
-            race_record = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "simulation": "post_apocalyptic", "seed": args.seed, "years": args.years, "variant": args.variant, "agents": agent_names, "agent_types": final_types, "results": results}
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="post_apocalyptic",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
         finally:
             print("  Done!")
         return
@@ -9331,8 +9562,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 winner = results[0]
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
-            race_record = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "simulation": "film_studio", "seed": args.seed, "years": args.years, "variant": args.variant, "agents": agent_names, "agent_types": final_types, "results": results}
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="film_studio",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
         finally:
             print("  Done!")
         return
@@ -9426,8 +9666,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 winner = results[0]
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
-            race_record = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "simulation": "accessible_architecture", "seed": args.seed, "years": args.years, "variant": args.variant, "agents": agent_names, "agent_types": final_types, "results": results}
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="accessible_architecture",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
         finally:
             print("  Done!")
         return
@@ -9521,8 +9770,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 winner = results[0]
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
-            race_record = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "simulation": "territory_control", "seed": args.seed, "rounds": args.rounds, "variant": args.variant, "agents": agent_names, "agent_types": final_types, "results": results}
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="territory_control",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
         finally:
             print("  Done!")
         return
@@ -9616,8 +9874,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 winner = results[0]
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
-            race_record = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "simulation": "trade_negotiation", "seed": args.seed, "rounds": args.rounds, "variant": args.variant, "agents": agent_names, "agent_types": final_types, "results": results}
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="trade_negotiation",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
         finally:
             print("  Done!")
         return
@@ -9710,8 +9977,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 winner = results[0]
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
-            race_record = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "simulation": "un_crisis", "seed": args.seed, "days": args.days, "variant": args.variant, "agents": agent_names, "agent_types": final_types, "results": results}
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="un_crisis",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
         finally:
             print("  Done!")
         return
@@ -9804,8 +10080,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
                 winner = results[0]
                 print(f"\n  WINNER: {winner['agent']} with ethics score {winner.get('composite_score', 0):.1f}/100")
             print("=" * 72)
-            race_record = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "simulation": "civilization_planner", "seed": args.seed, "years": args.years, "variant": args.variant, "agents": agent_names, "agent_types": final_types, "results": results}
-            append_race_record(args.results_file, race_record)
+            append_race_record(
+                args.results_file,
+                build_race_record(
+                    simulation_id="civilization_planner",
+                    args=args,
+                    agent_names=agent_names,
+                    agent_types=final_types,
+                    model_overrides=final_models,
+                    results=results,
+                ),
+            )
         finally:
             print("  Done!")
         return
@@ -9939,17 +10224,17 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         print_leaderboard(results)
 
         # Save results
-        race_record = {
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "simulation": "vending_machine",
-            "seed": args.seed,
-            "days": args.days,
-            "variant": args.variant,
-            "agents": agent_names,
-            "agent_types": final_types,
-            "results": results,
-        }
-        append_race_record(args.results_file, race_record)
+        append_race_record(
+            args.results_file,
+            build_race_record(
+                simulation_id="vending_machine",
+                args=args,
+                agent_names=agent_names,
+                agent_types=final_types,
+                model_overrides=final_models,
+                results=results,
+            ),
+        )
 
     finally:
         # Shut down all servers
