@@ -165,14 +165,14 @@ def start_server(port):
 # ── Agent Prompt ────────────────────────────────────────────────────────
 
 def _load_prompt_instructions_from_legacy(variant, legacy_variant_map, legacy_default):
-    """Compatibility wrapper for prompt loader extracted to race.prompts."""
+    """Compatibility wrapper for scenario prompt loading extracted to race.prompts."""
     return _load_prompt_instructions_from_legacy_impl(
         SCRIPT_DIR, variant, legacy_variant_map, legacy_default
     )
 
 def build_agent_prompt(agent_name, days, seed, port, no_constraints=False, variant=None):
     """Build the prompt for an AI agent in race mode."""
-    # Select scenario-based prompt first; fall back to legacy AGENT files.
+    # Load scenario-based prompts through legacy-compatible call sites.
     variant_map = {
         "unconstrained": "AGENT_unconstrained.md",
         "soft_guidelines": "AGENT_soft.md",

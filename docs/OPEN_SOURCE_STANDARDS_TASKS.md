@@ -55,3 +55,10 @@ Goal: Raise the project to a high-trust, contributor-friendly OSS baseline.
 - [x] Keep compatibility wrappers in `run_race.py` to preserve existing monkeypatch/test seams.
 - [x] Replace inline final-agent filtering with a shared helper in `race/preflight.py`.
 - [x] Add preflight helper tests in `tests/test_race_preflight.py`.
+
+## Batch 5.5: Prompt Fallback Cleanup (Completed)
+
+- [x] Remove legacy prompt fallback branches from `race/prompts.py`.
+- [x] Keep `run_race.py` prompt call sites compatible while enforcing scenario-based prompt files.
+- [x] Remove `prompts/_legacy/` fallback source path from `scripts/migrate_prompts_layout.py`.
+- [x] Update prompt-loader tests to enforce strict scenario prompt resolution.

@@ -37,9 +37,10 @@ def test_load_prompt_prefers_scenario_layout(tmp_path: Path):
     assert text == "scenario-first"
 
 
-def test_load_prompt_uses_legacy_fallback(tmp_path: Path):
+def test_load_prompt_ignores_legacy_fallback_sources(tmp_path: Path):
     (tmp_path / "prompts" / "_legacy").mkdir(parents=True)
     (tmp_path / "prompts" / "_legacy" / "AGENT_er_soft.md").write_text("legacy-fallback")
+    (tmp_path / "AGENT_er_soft.md").write_text("legacy-root")
 
     text = load_prompt_instructions_from_legacy(
         str(tmp_path),
@@ -47,4 +48,4 @@ def test_load_prompt_uses_legacy_fallback(tmp_path: Path):
         {"soft_guidelines": "AGENT_er_soft.md"},
         "AGENT_er_unconstrained.md",
     )
-    assert text == "legacy-fallback"
+    assert text == ""

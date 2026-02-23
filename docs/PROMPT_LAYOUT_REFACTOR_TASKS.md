@@ -29,4 +29,10 @@ Scope: Move from root-level `AGENT_*.md` sprawl to scenario-based prompt layout 
 - [x] Update README examples to reference new prompt paths.
 - [x] Remove root legacy vending prompt files after benchmark runner migration.
 - [x] Remove `prompts/_legacy/` prompt archive after scenario prompt tree stabilized.
-- [ ] Remove legacy fallback branches from `run_race.py` and migration script if no longer needed.
+- [x] Remove legacy fallback branches from `run_race.py` and migration script if no longer needed.
+
+## Batch 5.5 (Completed)
+- [x] Prompt loader now resolves only `prompts/<scenario>/<variant>.md` paths.
+- [x] Legacy root and `prompts/_legacy/` fallback branches removed from `race/prompts.py`.
+- [x] Migration script no longer uses `prompts/_legacy/` fallback sources.
+- [x] Prompt loader tests updated to enforce strict scenario-based prompt resolution.

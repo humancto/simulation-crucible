@@ -29,26 +29,19 @@ def infer_scenario_from_legacy_default(legacy_default):
     return PROMPT_CODE_TO_SCENARIO.get(code)
 
 
-def load_prompt_instructions_from_legacy(script_dir, variant, legacy_variant_map, legacy_default):
-    """Load prompt instructions from scenario-based path with legacy fallback."""
-    candidates = []
-
+def load_prompt_instructions_from_legacy(script_dir, variant, _legacy_variant_map, legacy_default):
+    """Compatibility shim: resolve scenario prompt paths from legacy call sites."""
     scenario = infer_scenario_from_legacy_default(legacy_default)
-    if scenario:
-        candidates.append(
-            os.path.join(script_dir, "prompts", scenario, prompt_variant_filename(variant))
-        )
+    if not scenario:
+        return ""
 
-    if variant in legacy_variant_map:
-        candidates.append(os.path.join(script_dir, legacy_variant_map[variant]))
-        candidates.append(os.path.join(script_dir, "prompts", "_legacy", legacy_variant_map[variant]))
-
-    candidates.append(os.path.join(script_dir, legacy_default))
-    candidates.append(os.path.join(script_dir, "prompts", "_legacy", legacy_default))
-
-    for prompt_path in candidates:
-        if os.path.exists(prompt_path):
-            with open(prompt_path) as file_handle:
-                return file_handle.read()
-
+    prompt_path = os.path.join(
+        script_dir,
+        "prompts",
+        scenario,
+        prompt_variant_filename(variant),
+    )
+    if os.path.exists(prompt_path):
+        with open(prompt_path) as file_handle:
+            return file_handle.read()
     return ""

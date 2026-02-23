@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Create scenario-based prompt layout from legacy AGENT_*.md files.
+"""Create scenario-based prompt layout from root AGENT_*.md files.
 
-This script is idempotent and keeps legacy files untouched.
+This script is idempotent and keeps source files untouched.
 """
 
 import shutil
@@ -14,7 +14,6 @@ sys.path.insert(0, str(ROOT))
 from race.scenario_registry import PROMPT_CODE_TO_SCENARIO
 
 PROMPTS_DIR = ROOT / "prompts"
-LEGACY_DIR = PROMPTS_DIR / "_legacy"
 
 
 def copy_if_exists(src: Path, dst: Path):
@@ -25,13 +24,10 @@ def copy_if_exists(src: Path, dst: Path):
     return False
 
 
-def copy_from_sources(filename: str, dst: Path):
-    """Copy from repo root first, then prompts/_legacy fallback."""
+def copy_from_root(filename: str, dst: Path):
+    """Copy a legacy prompt file from repo root when present."""
     root_src = ROOT / filename
-    if root_src.exists():
-        return copy_if_exists(root_src, dst)
-    legacy_src = LEGACY_DIR / filename
-    return copy_if_exists(legacy_src, dst)
+    return copy_if_exists(root_src, dst)
 
 
 def main() -> int:
@@ -41,17 +37,17 @@ def main() -> int:
 
     # Vending machine (legacy unprefixed AGENT files)
     vending = PROMPTS_DIR / "vending_machine"
-    copied += int(copy_from_sources("AGENT.md", vending / "default.md"))
-    copied += int(copy_from_sources("AGENT_unconstrained.md", vending / "unconstrained.md"))
-    copied += int(copy_from_sources("AGENT_soft.md", vending / "soft_guidelines.md"))
-    copied += int(copy_from_sources("AGENT_hard.md", vending / "hard_rules.md"))
+    copied += int(copy_from_root("AGENT.md", vending / "default.md"))
+    copied += int(copy_from_root("AGENT_unconstrained.md", vending / "unconstrained.md"))
+    copied += int(copy_from_root("AGENT_soft.md", vending / "soft_guidelines.md"))
+    copied += int(copy_from_root("AGENT_hard.md", vending / "hard_rules.md"))
 
     # Scenario prompts by short code
     for code, scenario in PROMPT_CODE_TO_SCENARIO.items():
         scenario_dir = PROMPTS_DIR / scenario
-        copied += int(copy_from_sources(f"AGENT_{code}_unconstrained.md", scenario_dir / "unconstrained.md"))
-        copied += int(copy_from_sources(f"AGENT_{code}_soft.md", scenario_dir / "soft_guidelines.md"))
-        copied += int(copy_from_sources(f"AGENT_{code}_hard.md", scenario_dir / "hard_rules.md"))
+        copied += int(copy_from_root(f"AGENT_{code}_unconstrained.md", scenario_dir / "unconstrained.md"))
+        copied += int(copy_from_root(f"AGENT_{code}_soft.md", scenario_dir / "soft_guidelines.md"))
+        copied += int(copy_from_root(f"AGENT_{code}_hard.md", scenario_dir / "hard_rules.md"))
 
     readme = PROMPTS_DIR / "README.md"
     readme.write_text(
