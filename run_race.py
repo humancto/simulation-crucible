@@ -3892,7 +3892,7 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
     parser.add_argument("--years", type=int, default=30, help="Simulation years (climate_tipping default: 30, pollution_prosperity default: 20)")
     parser.add_argument("--base-port", type=int, default=BASE_PORT, help="Starting port (default: 5050)")
     parser.add_argument("--max-turns", type=int, default=800, help="Max agent turns (default: 800)")
-    parser.add_argument("--results-file", type=str, default="race_results_v2.json", help="Results output file")
+    parser.add_argument("--results-file", type=str, default="results/race_results_v2.json", help="Results output file")
     parser.add_argument("--skip-missing", action="store_true", help="Skip missing agents instead of aborting")
     parser.add_argument("--no-constraints", action="store_true", help="Disable integrity constraints in agent prompt")
     parser.add_argument(
@@ -3906,6 +3906,11 @@ Duplicates auto-deduplicate: claude,claude -> claude-1, claude-2
         help="V2 ethical constraint variant (default: soft_guidelines)"
     )
     args = parser.parse_args()
+
+    # Ensure output directory exists when using nested results paths.
+    results_dir = os.path.dirname(args.results_file)
+    if results_dir:
+        os.makedirs(os.path.join(SCRIPT_DIR, results_dir), exist_ok=True)
 
     is_ipd = args.simulation == "prisoners_dilemma"
     is_er = args.simulation == "emergency_room"

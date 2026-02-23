@@ -9,7 +9,7 @@ Usage:
     python3 run_benchmark.py --claude                  # Run Claude Code
     python3 run_benchmark.py --claude --seed 42        # Reproducible
     python3 run_benchmark.py --manual                  # Manual mode
-    python3 run_benchmark.py --leaderboard scores.json # View past scores
+    python3 run_benchmark.py --leaderboard results/scores.json # View past scores
 """
 
 import argparse
@@ -171,6 +171,10 @@ def collect_score(port):
 
 def save_score(score, model_name, scores_file):
     """Append score to the leaderboard file."""
+    scores_dir = os.path.dirname(scores_file)
+    if scores_dir:
+        os.makedirs(scores_dir, exist_ok=True)
+
     scores = []
     if os.path.exists(scores_file):
         with open(scores_file) as f:
@@ -260,7 +264,7 @@ def main():
     parser.add_argument("--days", type=int, default=90, help="Simulation days (default: 90)")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="Server port")
     parser.add_argument("--model-name", type=str, default="claude-code", help="Model name for leaderboard")
-    parser.add_argument("--scores-file", type=str, default="scores.json", help="Leaderboard file")
+    parser.add_argument("--scores-file", type=str, default="results/scores.json", help="Leaderboard file")
     parser.add_argument("--leaderboard", action="store_true", help="Show leaderboard and exit")
     parser.add_argument("--max-turns", type=int, default=800, help="Max agent turns")
     args = parser.parse_args()

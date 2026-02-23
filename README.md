@@ -1114,7 +1114,7 @@ GET  /api/sim/constraint-violations — Rule enforcement log
 | `--models`       | auto-detect            | Per-agent model override                         |
 | `--base-port`    | 5050                   | Starting port                                    |
 | `--max-turns`    | 800                    | Max LLM turns per agent                          |
-| `--results-file` | `race_results_v2.json` | Output file                                      |
+| `--results-file` | `results/race_results_v2.json` | Output file                                      |
 
 </details>
 
@@ -1157,7 +1157,7 @@ run_race.py
   │     ├── Server :5051 ─── simulation_v2.py ─── Codex
   │     └── Server :5052 ─── simulation_v2.py ─── Gemini
   ├── WebSocket → Live dashboard (per-agent panels, balance chart)
-  └── Output → race_results_v2.json, terminal leaderboard
+  └── Output → results/race_results_v2.json, terminal leaderboard
 ```
 
 ### Framework (`core/`)
@@ -1196,6 +1196,7 @@ The vending machine is Simulation #1 on a framework designed for multiple simula
 | `simulations/vending_machine/` | Adapter wrapping V2 as BaseSimulationEngine    |
 | `static/`, `templates/`        | Browser UI (dashboard, race, results)          |
 | `docs/`                        | Test results, screenshots, analysis            |
+| `results/`                     | Generated race outputs and benchmark score files |
 
 </details>
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Mega Loop: Run 10 races with alternating constraints and 10-minute gaps.
-# Results are appended to mega_loop_results.jsonl after each run.
+# Results are appended to results/mega_loop_results.jsonl after each run.
 # Can be stopped at any time — completed runs are preserved.
 #
 # Usage:
@@ -18,8 +18,11 @@ cd "$SCRIPT_DIR"
 AGENTS="claude,codex"
 DAYS=10
 GAP_SECONDS=600  # 10 minutes between runs
-RESULTS_FILE="$SCRIPT_DIR/mega_loop_results.jsonl"
-SUMMARY_FILE="$SCRIPT_DIR/mega_loop_summary.txt"
+RESULTS_DIR="$SCRIPT_DIR/results"
+RESULTS_FILE="$RESULTS_DIR/mega_loop_results.jsonl"
+SUMMARY_FILE="$RESULTS_DIR/mega_loop_summary.txt"
+
+mkdir -p "$RESULTS_DIR"
 
 # Alternating: odd-indexed runs = no constraints, even-indexed = constrained
 # Seeds chosen to avoid overlap with runs 1-9 (which used 42, 99, 77, 55, 33)
@@ -83,7 +86,7 @@ run_race() {
     echo "  └──────────────────────────────────────────────────────┘"
     echo ""
 
-    local results_file="race_results_run${run_num}.json"
+    local results_file="results/race_results_run${run_num}.json"
 
     # Run the race
     python3 run_race.py \

@@ -445,8 +445,14 @@ def api_race_results():
     """Return historical race results from both V1 and V2 files, merged."""
     base = os.path.dirname(__file__)
     all_results = []
-    for fname in ("race_results.json", "race_results_v2.json"):
-        fpath = os.path.join(base, fname)
+    candidate_paths = (
+        os.path.join(base, "results", "race_results.json"),
+        os.path.join(base, "results", "race_results_v2.json"),
+        # Backward compatibility with older root-level files.
+        os.path.join(base, "race_results.json"),
+        os.path.join(base, "race_results_v2.json"),
+    )
+    for fpath in candidate_paths:
         if os.path.exists(fpath):
             try:
                 with open(fpath) as f:

@@ -522,4 +522,4 @@ Claude hit 100 on strategy for the first time (vs 70-90 on 30-day runs). The lon
 - Agents receive variant-specific instructions (`prompts/vending_machine/soft_guidelines.md` for soft_guidelines)
 - Hidden metrics are not disclosed to agents during the run
 - Composite scores are calculated server-side after the run completes
-- Results are stored in `race_results_v2.json` and displayed on `/results`
+- Results are stored in `results/race_results_v2.json` and displayed on `/results`
