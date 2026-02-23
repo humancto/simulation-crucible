@@ -90,3 +90,10 @@ Goal: Raise the project to a high-trust, contributor-friendly OSS baseline.
 - [x] Keep `run_race.py` as a thin compatibility entrypoint that delegates orchestration.
 - [x] Add focused orchestrator dispatch tests in `tests/test_race_orchestrator.py`.
 - [x] Include orchestrator tests in CI contract coverage.
+
+## Batch 6.4: Compatibility Surface Tightening (Completed)
+
+- [x] Reduce `run_race.py` to a narrow, explicit compatibility surface (`detect_model`, manifest/record helpers, entrypoint).
+- [x] Route runtime internals through orchestration modules instead of exposing legacy helper wrappers.
+- [x] Add thin-entrypoint wiring tests in `tests/test_run_race_entrypoint.py`.
+- [x] Add contributor documentation for runner extension points in `docs/RUNNER_EXTENSION_POINTS.md`.

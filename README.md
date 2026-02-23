@@ -99,6 +99,7 @@ To keep this useful and auditable, use these docs as the source of truth:
 - [`docs/WHAT_THIS_TESTS.md`](docs/WHAT_THIS_TESTS.md): evaluation scope, valid claims, and non-goals.
 - [`docs/TESTING.md`](docs/TESTING.md): required local validation and CI expectations.
 - [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md): screenshot standards for README and docs pages.
+- [`docs/RUNNER_EXTENSION_POINTS.md`](docs/RUNNER_EXTENSION_POINTS.md): how to extend runner flow safely.
 - [`docs/OPEN_SOURCE_STANDARDS_TASKS.md`](docs/OPEN_SOURCE_STANDARDS_TASKS.md): current hardening checklist and next priorities.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md): simulation scaffold and PR workflow.
 - [`SUPPORT.md`](SUPPORT.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md): project support and governance policies.
@@ -1220,6 +1221,7 @@ The vending machine is Simulation #1 on a framework designed for multiple simula
 | `race/local_mode.py`           | Shared no-server race execution across scenarios |
 | `race/server_mode.py`          | Shared vending-machine server-backed race flow   |
 | `race/scenario_io.py`          | Scenario prompt builders + local score collectors |
+| `docs/RUNNER_EXTENSION_POINTS.md` | Contributor guide for runner extension points |
 | `server.py`                    | Flask server, REST API, WebSocket              |
 | `simulation.py`                | V1 simulation engine                           |
 | `simulation_v2.py`             | V2 — ethics, workers, investments, disruptions |

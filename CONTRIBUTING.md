@@ -8,6 +8,7 @@ Before contributing, read:
 
 - `docs/WHAT_THIS_TESTS.md`
 - `docs/TESTING.md`
+- `docs/RUNNER_EXTENSION_POINTS.md` (if you touch runner/orchestration code)
 - `docs/SCREENSHOTS.md` (if UI/docs visuals change)
 - `SECURITY.md` and `CODE_OF_CONDUCT.md`
 

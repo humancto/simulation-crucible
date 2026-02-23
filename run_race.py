@@ -2,8 +2,8 @@
 """
 The Simulation Crucible — AI Race Runner
 
-Thin entrypoint for race orchestration. Core orchestration lives in
-`race/orchestrator.py` and runner modules under `race/`.
+Thin entrypoint for race orchestration. Core orchestration and mode runners
+live under `race/`.
 """
 
 import os
@@ -29,27 +29,19 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_PORT = race_orchestrator.BASE_PORT
 AGENT_DEFS = race_orchestrator.AGENT_DEFS
 
-
-# ── Compatibility Helpers ──────────────────────────────────────────────
-
-def deduplicate_names(names):
-    """Auto-deduplicate agent names: [claude, claude] -> [claude-1, claude-2]."""
-    return race_orchestrator.deduplicate_names(names)
-
-
-def get_agent_type(name):
-    """Extract the base agent type from a name like 'claude-2' or 'codex'."""
-    return race_orchestrator.get_agent_type(name, AGENT_DEFS)
-
-
-def check_agent_available(agent_type):
-    """Check if an agent CLI tool is installed and accessible."""
-    return race_orchestrator.check_agent_available(AGENT_DEFS, race_preflight, agent_type)
-
-
-def check_api_key(agent_type):
-    """Check if the expected API key env var is set."""
-    return race_orchestrator.check_api_key(AGENT_DEFS, race_preflight, agent_type)
+# Public compatibility surface retained for tests and external scripts.
+__all__ = [
+    "SCRIPT_DIR",
+    "BASE_PORT",
+    "AGENT_DEFS",
+    "detect_model",
+    "get_git_commit_sha",
+    "build_race_record",
+    "build_run_manifest",
+    "append_race_record",
+    "run_preflight",
+    "main",
+]
 
 
 def detect_model(agent_type):
@@ -57,124 +49,9 @@ def detect_model(agent_type):
     return race_orchestrator.detect_model(race_preflight, agent_type)
 
 
-def wait_for_server(port, timeout=30):
-    """Wait for a server to respond on the given port."""
-    return race_orchestrator.wait_for_server(port, timeout=timeout)
-
-
-def api_post(port, path, data=None):
-    """POST to a server API."""
-    return race_orchestrator.api_post(port, path, data=data)
-
-
-def api_get(port, path):
-    """GET from a server API."""
-    return race_orchestrator.api_get(port, path)
-
-
-def start_server(port):
-    """Start a Flask server instance on the given port."""
-    return race_orchestrator.start_server(SCRIPT_DIR, port)
-
-
-def build_agent_command(agent_name, agent_type, prompt, max_turns, port, model_override=None):
-    """Build the CLI command to launch an agent autonomously."""
-    return race_execution.build_agent_command(
-        AGENT_DEFS,
-        agent_name,
-        agent_type,
-        prompt,
-        max_turns,
-        port,
-        model_override=model_override,
-    )
-
-
-def _push_status_to_server(port, action, detail, success=True):
-    """Push a status/error event to the server's WebSocket via REST."""
-    return race_execution.push_status_to_server(
-        api_post,
-        port,
-        action,
-        detail,
-        success=success,
-    )
-
-
-def _monitor_agent_log(log_path, agent_name, port, proc, stop_event):
-    """Tail the agent log in real-time and push errors/status to the server."""
-    return race_execution.monitor_agent_log(
-        log_path,
-        agent_name,
-        port,
-        api_post,
-        stop_event,
-    )
-
-
-def run_agent(agent_name, agent_type, port, prompt, max_turns, model_override=None):
-    """Run a single AI agent. Returns (agent_name, port, returncode, duration, error_summary)."""
-    return race_execution.run_agent(
-        SCRIPT_DIR,
-        AGENT_DEFS,
-        api_post,
-        agent_name,
-        agent_type,
-        port,
-        prompt,
-        max_turns,
-        model_override=model_override,
-    )
-
-
-def _extract_error_from_log(log_path):
-    """Scan the last 50 lines of a log for common error patterns."""
-    return race_execution.extract_error_from_log(log_path)
-
-
-def collect_score(port):
-    """Collect the final score from a server."""
-    return race_execution.collect_score(api_get, port)
-
-
 def get_git_commit_sha():
     """Return current git commit SHA, or empty string if unavailable."""
     return race_results.get_git_commit_sha(SCRIPT_DIR)
-
-
-def sha256_file(path):
-    """Return SHA-256 hex digest for a file path."""
-    return race_results.sha256_file(path)
-
-
-def prompt_artifact(simulation_id, variant):
-    """Return prompt metadata for a simulation+variant pair."""
-    return race_results.prompt_artifact(SCRIPT_DIR, simulation_id, variant)
-
-
-def race_duration_field(race_record):
-    """Extract duration field as {'key': <unit>, 'value': <n>} if present."""
-    return race_results.race_duration_field(race_record)
-
-
-def detected_models_for_record(race_record):
-    """Return best-effort model metadata by agent type."""
-    return race_results.detected_models_for_record(race_record, detect_model)
-
-
-def build_agent_model_records(agent_names, agent_types, model_overrides=None):
-    """Build per-agent requested/detected/effective model metadata."""
-    return race_results.build_agent_model_records(
-        agent_names,
-        agent_types,
-        detect_model_cb=detect_model,
-        model_overrides=model_overrides,
-    )
-
-
-def add_model_metadata_to_results(results, agent_model_records):
-    """Attach model metadata to each result row by agent name."""
-    return race_results.add_model_metadata_to_results(results, agent_model_records)
 
 
 def build_race_record(
@@ -224,16 +101,49 @@ def append_race_record(results_file, race_record):
     )
 
 
-def run_preflight(agent_types):
-    """Check which agents are available. Returns list of (type, available, info)."""
+def _run_preflight(agent_types):
+    """Run preflight checks for selected agent types."""
     return race_preflight.run_preflight(
         AGENT_DEFS,
         agent_types,
-        check_agent_available_cb=check_agent_available,
-        check_api_key_cb=check_api_key,
+        check_agent_available_cb=lambda atype: race_orchestrator.check_agent_available(
+            AGENT_DEFS,
+            race_preflight,
+            atype,
+        ),
+        check_api_key_cb=lambda atype: race_orchestrator.check_api_key(
+            AGENT_DEFS,
+            race_preflight,
+            atype,
+        ),
         detect_model_cb=detect_model,
         print_fn=print,
     )
+
+
+def run_preflight(agent_types):
+    """Compatibility wrapper around preflight execution."""
+    return _run_preflight(agent_types)
+
+
+def _run_agent(agent_name, agent_type, port, prompt, max_turns, model_override=None):
+    """Run one agent process for local/server mode runners."""
+    return race_execution.run_agent(
+        SCRIPT_DIR,
+        AGENT_DEFS,
+        race_orchestrator.api_post,
+        agent_name,
+        agent_type,
+        port,
+        prompt,
+        max_turns,
+        model_override=model_override,
+    )
+
+
+def _collect_score(port):
+    """Collect a vending-mode score from a running server instance."""
+    return race_execution.collect_score(race_orchestrator.api_get, port)
 
 
 # ── Main ────────────────────────────────────────────────────────────────
@@ -248,11 +158,11 @@ def main():
         get_scenario_cb=get_scenario,
         parse_run_configuration_cb=race_config.parse_run_configuration,
         build_final_agent_lists_cb=race_preflight.build_final_agent_lists,
-        deduplicate_names_cb=deduplicate_names,
-        run_preflight_cb=run_preflight,
+        deduplicate_names_cb=race_orchestrator.deduplicate_names,
+        run_preflight_cb=_run_preflight,
         detect_model_cb=detect_model,
-        run_agent_cb=run_agent,
-        collect_score_cb=collect_score,
+        run_agent_cb=_run_agent,
+        collect_score_cb=_collect_score,
         build_race_record_cb=build_race_record,
         append_race_record_cb=append_race_record,
         local_mode_runner_cb=race_local_mode.run_local_cli_race,
