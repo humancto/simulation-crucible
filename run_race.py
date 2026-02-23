@@ -15,22 +15,20 @@ Usage:
 """
 
 import argparse
-import hashlib
 import json
 import os
-import platform
 import re
 import shutil
-import shlex
 import signal
 import subprocess
 import sys
-import threading
 import time
 import urllib.request
 import urllib.error
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from race import execution as race_execution
+from race import results as race_results
 from race.prompts import (
     load_prompt_instructions_from_legacy as _load_prompt_instructions_from_legacy_impl,
 )
@@ -3444,366 +3442,106 @@ def collect_cp_score(state_dir):
     return None
 
 
-# ── Agent Launcher (per agent type) ────────────────────────────────────
+# ── Agent Launcher and Score Collection ────────────────────────────────
 
 def build_agent_command(agent_name, agent_type, prompt, max_turns, port, model_override=None):
-    """Build the CLI command to launch an agent autonomously.
-    Auto-detects models unless model_override is specified.
-    Returns (cmd_list, env_dict).
-    """
-    env = {**os.environ, "VM_URL": f"http://localhost:{port}"}
-
-    if agent_type == "claude":
-        # Unset CLAUDECODE to allow nested sessions
-        env.pop("CLAUDECODE", None)
-        cmd = [
-            "claude",
-            "-p", prompt,
-            "--dangerously-skip-permissions",
-            "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep",
-            "--max-turns", str(max_turns),
-        ]
-        if model_override:
-            cmd.extend(["--model", model_override])
-
-    elif agent_type == "codex":
-        cmd = [
-            "codex", "exec",
-            "--dangerously-bypass-approvals-and-sandbox",
-        ]
-        if model_override:
-            cmd.extend(["-c", f'model="{model_override}"'])
-        cmd.append(prompt)
-
-    elif agent_type == "gemini":
-        cmd = [
-            "gemini",
-            "--yolo",
-        ]
-        if model_override:
-            cmd.extend(["-m", model_override])
-        cmd.extend(["-p", prompt])
-
-    else:
-        # Fallback: try claude CLI
-        env.pop("CLAUDECODE", None)
-        cmd = [
-            "claude",
-            "-p", prompt,
-            "--dangerously-skip-permissions",
-            "--max-turns", str(max_turns),
-        ]
-        if model_override:
-            cmd.extend(["--model", model_override])
-
-    return cmd, env
+    """Build the CLI command to launch an agent autonomously."""
+    return race_execution.build_agent_command(
+        AGENT_DEFS,
+        agent_name,
+        agent_type,
+        prompt,
+        max_turns,
+        port,
+        model_override=model_override,
+    )
 
 
 def _push_status_to_server(port, action, detail, success=True):
     """Push a status/error event to the server's WebSocket via REST."""
-    try:
-        api_post(port, "/api/race/event", {
-            "action": action,
-            "detail": detail,
-            "success": success,
-        })
-    except Exception:
-        pass  # best-effort
+    return race_execution.push_status_to_server(
+        api_post,
+        port,
+        action,
+        detail,
+        success=success,
+    )
 
 
 def _monitor_agent_log(log_path, agent_name, port, proc, stop_event):
-    """Tail the agent log in real-time and push errors/status to the server.
-    Runs in a separate thread alongside the agent process.
-    """
-    import re
-
-    seen_lines = 0
-    error_patterns = [
-        (r"does not exist or you do not have access", "Model not available — check your account access"),
-        (r"rate.?limit|429|Too Many Requests|rateLimitExceeded", "Rate limited — retrying..."),
-        (r"No capacity available", "No model capacity — server overloaded"),
-        (r"authentication|unauthorized|401", "Authentication failed"),
-        (r"BANKRUPT", "Agent went bankrupt"),
-        (r"connection refused|ECONNREFUSED", "Server connection failed"),
-        (r"timeout|ETIMEDOUT", "Request timed out"),
-        (r"Reconnecting\.\.\. (\d+)/(\d+)", None),  # special: reconnect tracking
-    ]
-
-    last_error_time = 0
-
-    while not stop_event.is_set():
-        try:
-            with open(log_path, "r") as f:
-                lines = f.readlines()
-            new_lines = lines[seen_lines:]
-            seen_lines = len(lines)
-
-            for line in new_lines:
-                line_stripped = line.strip()
-                if not line_stripped:
-                    continue
-
-                for pattern, message in error_patterns:
-                    if re.search(pattern, line_stripped, re.IGNORECASE):
-                        now = time.time()
-                        # Debounce: don't spam the same error type
-                        if now - last_error_time < 3:
-                            break
-
-                        if message is None:
-                            # Reconnect pattern
-                            m = re.search(r"Reconnecting\.\.\. (\d+)/(\d+)", line_stripped)
-                            if m:
-                                message = f"Reconnecting attempt {m.group(1)}/{m.group(2)}"
-                        _push_status_to_server(port, "agent-error", f"[{agent_name}] {message}", success=False)
-                        last_error_time = now
-                        break
-
-        except Exception:
-            pass
-
-        stop_event.wait(1.0)  # check every second
+    """Tail the agent log in real-time and push errors/status to the server."""
+    return race_execution.monitor_agent_log(
+        log_path,
+        agent_name,
+        port,
+        api_post,
+        stop_event,
+    )
 
 
 def run_agent(agent_name, agent_type, port, prompt, max_turns, model_override=None):
     """Run a single AI agent. Returns (agent_name, port, returncode, duration, error_summary)."""
-    log_path = f"/tmp/vending-race-agent-{agent_name}.log"
-    cmd, env = build_agent_command(agent_name, agent_type, prompt, max_turns, port, model_override)
-
-    start_time = time.time()
-    with open(log_path, "w") as log:
-        model_info = model_override or "(CLI default)"
-        log.write(f"# Agent: {agent_name} (type: {agent_type})\n")
-        log.write(f"# Model: {model_info}\n")
-        log.write(f"# Port: {port}\n")
-        log.write(f"# Command: {' '.join(cmd[:5])}...\n")
-        log.write(f"# Started: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-        log.write(f"{'='*60}\n\n")
-        log.flush()
-
-        # Notify server that agent is starting
-        _push_status_to_server(port, "agent-start",
-            f"[{agent_name}] Starting ({AGENT_DEFS.get(agent_type, {}).get('display', agent_type)}, model: {model_info})")
-
-        try:
-            proc = subprocess.Popen(
-                cmd,
-                cwd=SCRIPT_DIR,
-                stdout=log,
-                stderr=subprocess.STDOUT,
-                env=env,
-                bufsize=1,
-            )
-
-            # Start log monitor thread
-            monitor_stop = threading.Event()
-            monitor = threading.Thread(
-                target=_monitor_agent_log,
-                args=(log_path, agent_name, port, proc, monitor_stop),
-                daemon=True,
-            )
-            monitor.start()
-
-            proc.wait()
-            duration = time.time() - start_time
-
-            # Stop monitor
-            monitor_stop.set()
-            monitor.join(timeout=2)
-
-            # Scan log for error summary
-            error_summary = _extract_error_from_log(log_path)
-
-            # Notify server of completion
-            if proc.returncode == 0:
-                _push_status_to_server(port, "agent-complete",
-                    f"[{agent_name}] Finished in {duration:.0f}s")
-            else:
-                _push_status_to_server(port, "agent-error",
-                    f"[{agent_name}] Exited with code {proc.returncode}: {error_summary or 'unknown error'}",
-                    success=False)
-
-            return agent_name, port, proc.returncode, duration, error_summary
-        except FileNotFoundError:
-            duration = time.time() - start_time
-            log.write(f"\nERROR: '{cmd[0]}' binary not found!\n")
-            _push_status_to_server(port, "agent-error",
-                f"[{agent_name}] Binary '{cmd[0]}' not found", success=False)
-            return agent_name, port, -1, duration, f"Binary '{cmd[0]}' not found"
-        except Exception as e:
-            duration = time.time() - start_time
-            log.write(f"\nERROR: {e}\n")
-            _push_status_to_server(port, "agent-error",
-                f"[{agent_name}] {e}", success=False)
-            return agent_name, port, -1, duration, str(e)
+    return race_execution.run_agent(
+        SCRIPT_DIR,
+        AGENT_DEFS,
+        api_post,
+        agent_name,
+        agent_type,
+        port,
+        prompt,
+        max_turns,
+        model_override=model_override,
+    )
 
 
 def _extract_error_from_log(log_path):
     """Scan the last 50 lines of a log for common error patterns."""
-    try:
-        with open(log_path) as f:
-            lines = f.readlines()
-        tail = lines[-50:] if len(lines) > 50 else lines
-        text = "".join(tail)
+    return race_execution.extract_error_from_log(log_path)
 
-        # Common error patterns (exact-case or case-insensitive)
-        patterns = [
-            ("does not exist or you do not have access", "Model not available", False),
-            ("rate limit", "Rate limited", False),
-            ("Rate Limit", "Rate limited", False),
-            ("rateLimitExceeded", "Rate limited", False),
-            ("No capacity available", "No model capacity", False),
-            ("authentication", "Auth failed", False),
-            ("unauthorized", "Auth failed", False),
-            ("connection refused", "Server connection failed", False),
-            ("timeout", "Timed out", False),
-        ]
-        for pattern, summary, _ in patterns:
-            if pattern.lower() in text.lower():
-                return summary
-
-        # Bankruptcy detection: only match actual simulation events,
-        # not narrative mentions like "supplier went bankrupt" or
-        # "Avoid bankruptcy" from echoed instructions.
-        import re
-        bankruptcy_signals = [
-            r"you have gone bankrupt",
-            r"you are bankrupt",
-            r"your balance.*below.*-\$?50",
-            r"simulation ended.*bankrupt",
-            r"game over.*bankrupt",
-        ]
-        for sig in bankruptcy_signals:
-            if re.search(sig, text, re.IGNORECASE):
-                return "Went bankrupt"
-        return ""
-    except Exception:
-        return ""
-
-
-# ── Score Collection ────────────────────────────────────────────────────
 
 def collect_score(port):
     """Collect the final score from a server."""
-    score = api_get(port, "/api/sim/score")
-    if isinstance(score, dict) and "error" in score:
-        return None
-    # Try to get V2 full score as well
-    full_score = api_get(port, "/api/sim/full-score")
-    if isinstance(full_score, dict) and "error" not in full_score:
-        score["v2_score"] = full_score
-    return score
+    return race_execution.collect_score(api_get, port)
 
 
 def get_git_commit_sha():
     """Return current git commit SHA, or empty string if unavailable."""
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            cwd=SCRIPT_DIR,
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
-    except Exception:
-        pass
-    return ""
+    return race_results.get_git_commit_sha(SCRIPT_DIR)
 
 
 def sha256_file(path):
     """Return SHA-256 hex digest for a file path."""
-    digest = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(8192), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+    return race_results.sha256_file(path)
 
 
 def prompt_artifact(simulation_id, variant):
     """Return prompt metadata for a simulation+variant pair."""
-    prompt_rel = os.path.join("prompts", simulation_id, f"{variant}.md")
-    prompt_abs = os.path.join(SCRIPT_DIR, prompt_rel)
-    if not os.path.exists(prompt_abs):
-        return {"path": prompt_rel, "sha256": None}
-    try:
-        return {"path": prompt_rel, "sha256": sha256_file(prompt_abs)}
-    except OSError:
-        return {"path": prompt_rel, "sha256": None}
+    return race_results.prompt_artifact(SCRIPT_DIR, simulation_id, variant)
 
 
 def race_duration_field(race_record):
     """Extract duration field as {'key': <unit>, 'value': <n>} if present."""
-    for key in (
-        "days",
-        "hours",
-        "weeks",
-        "months",
-        "quarters",
-        "rounds",
-        "sessions",
-        "hands",
-        "seasons",
-        "years",
-    ):
-        if key in race_record:
-            return {"key": key, "value": race_record.get(key)}
-    return {"key": None, "value": None}
+    return race_results.race_duration_field(race_record)
 
 
 def detected_models_for_record(race_record):
     """Return best-effort model metadata by agent type."""
-    detected = {}
-    for atype in sorted(set(race_record.get("agent_types", []))):
-        model, source = detect_model(atype)
-        detected[atype] = {"model": model, "source": source}
-    return detected
+    return race_results.detected_models_for_record(race_record, detect_model)
 
 
 def build_agent_model_records(agent_names, agent_types, model_overrides=None):
     """Build per-agent requested/detected/effective model metadata."""
-    if model_overrides is None:
-        model_overrides = [None] * len(agent_names)
-
-    records = []
-    for i, (name, atype) in enumerate(zip(agent_names, agent_types)):
-        requested_model = None
-        if i < len(model_overrides):
-            requested_model = model_overrides[i]
-        detected_model, detected_source = detect_model(atype)
-        effective_model = requested_model or detected_model
-        records.append(
-            {
-                "agent": name,
-                "agent_type": atype,
-                "requested_model": requested_model,
-                "detected_model": detected_model,
-                "detected_model_source": detected_source,
-                "effective_model": effective_model,
-            }
-        )
-    return records
+    return race_results.build_agent_model_records(
+        agent_names,
+        agent_types,
+        detect_model_cb=detect_model,
+        model_overrides=model_overrides,
+    )
 
 
 def add_model_metadata_to_results(results, agent_model_records):
     """Attach model metadata to each result row by agent name."""
-    model_by_agent = {entry["agent"]: entry for entry in agent_model_records}
-    enriched = []
-    for row in results:
-        if not isinstance(row, dict):
-            enriched.append(row)
-            continue
-        out = dict(row)
-        agent_name = out.get("agent")
-        meta = model_by_agent.get(agent_name)
-        if meta:
-            out["requested_model"] = meta.get("requested_model")
-            out["detected_model"] = meta.get("detected_model")
-            out["detected_model_source"] = meta.get("detected_model_source")
-            out["effective_model"] = meta.get("effective_model")
-        enriched.append(out)
-    return enriched
+    return race_results.add_model_metadata_to_results(results, agent_model_records)
 
 
 def build_race_record(
@@ -3817,76 +3555,40 @@ def build_race_record(
     duration_value=None,
 ):
     """Build a standardized race record with per-agent model metadata."""
-    spec = get_scenario(simulation_id)
-    duration_key = duration_key or spec.duration_arg
-    if duration_value is None:
-        duration_value = getattr(args, duration_key)
-
-    agent_models = build_agent_model_records(
-        agent_names,
-        agent_types,
+    return race_results.build_race_record(
+        simulation_id=simulation_id,
+        args=args,
+        agent_names=agent_names,
+        agent_types=agent_types,
+        detect_model_cb=detect_model,
+        get_scenario_cb=get_scenario,
         model_overrides=model_overrides,
+        results=results,
+        duration_key=duration_key,
+        duration_value=duration_value,
     )
-    return {
-        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-        "simulation": simulation_id,
-        "seed": args.seed,
-        duration_key: duration_value,
-        "variant": args.variant,
-        "agents": list(agent_names),
-        "agent_types": list(agent_types),
-        "agent_models": agent_models,
-        "results": add_model_metadata_to_results(results, agent_models),
-    }
 
 
 def build_run_manifest(results_file, race_record):
     """Build reproducibility metadata for a race record."""
-    simulation_id = race_record.get("simulation") or "vending_machine"
-    variant = race_record.get("variant") or "soft_guidelines"
-    duration = race_duration_field(race_record)
-    prompt = prompt_artifact(simulation_id, variant)
-    return {
-        "schema_version": "race_manifest_v1",
-        "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "git_commit_sha": get_git_commit_sha(),
-        "python_version": platform.python_version(),
-        "platform": platform.platform(),
-        "script_dir": SCRIPT_DIR,
-        "argv": list(sys.argv),
-        "argv_shell_escaped": " ".join(shlex.quote(arg) for arg in sys.argv),
-        "results_file": results_file,
-        "simulation_id": simulation_id,
-        "variant": variant,
-        "seed": race_record.get("seed"),
-        "duration": duration,
-        "agent_names": list(race_record.get("agents", [])),
-        "agent_types": list(race_record.get("agent_types", [])),
-        "agent_models": list(race_record.get("agent_models", [])),
-        "detected_models": detected_models_for_record(race_record),
-        "prompt": prompt,
-    }
+    return race_results.build_run_manifest(
+        results_file,
+        race_record,
+        script_dir=SCRIPT_DIR,
+        detect_model_cb=detect_model,
+        get_git_commit_sha_cb=get_git_commit_sha,
+        argv=list(sys.argv),
+    )
 
 
 def append_race_record(results_file, race_record):
     """Append a race record to the JSON results file and print save location."""
-    results_path = os.path.join(SCRIPT_DIR, results_file)
-    results_dir = os.path.dirname(results_path)
-    if results_dir:
-        os.makedirs(results_dir, exist_ok=True)
-    record_to_save = dict(race_record)
-    record_to_save.setdefault("manifest", build_run_manifest(results_file, record_to_save))
-    existing = []
-    if os.path.exists(results_path):
-        try:
-            with open(results_path) as f:
-                existing = json.load(f)
-        except (json.JSONDecodeError, IOError):
-            existing = []
-    existing.append(record_to_save)
-    with open(results_path, "w") as f:
-        json.dump(existing, f, indent=2)
-    print(f"\n  Results saved to {results_file}")
+    return race_results.append_race_record(
+        SCRIPT_DIR,
+        results_file,
+        race_record,
+        manifest_builder=build_run_manifest,
+    )
 
 
 # ── Pre-flight Checks ──────────────────────────────────────────────────
