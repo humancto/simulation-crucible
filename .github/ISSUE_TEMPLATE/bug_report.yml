@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a reproducible bug in simulation, runner, CLI, or docs.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please provide enough detail for reproduction.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One-line description of the bug.
+      placeholder: What broke?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Exact commands and sequence.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior / error output
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: OS, Python version, and relevant CLI versions.
+      placeholder: macOS 15.3, Python 3.11.8
+    validations:
+      required: true
+  - type: input
+    id: metadata
+    attributes:
+      label: Scenario metadata
+      description: Simulation id, variant, seed, and model/agent if applicable.
+      placeholder: vending_machine, soft_guidelines, seed=42, codex

@@ -20,7 +20,13 @@ jobs:
       - name: Compile
         run: python -m py_compile $(find . -name "*.py" -not -path "./.git/*")
       - name: Contract tests
-        run: pytest -q tests/test_scenario_registry.py tests/test_race_prompts.py tests/test_new_scenario_script.py
+        run: |
+          pytest -q \
+            tests/test_scenario_registry.py \
+            tests/test_race_prompts.py \
+            tests/test_new_scenario_script.py \
+            tests/test_run_race_results.py \
+            tests/test_oss_docs.py
       - name: Runner smoke checks
         run: |
           python run_race.py --help >/dev/null

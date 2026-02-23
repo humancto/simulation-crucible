@@ -4,6 +4,13 @@ This project is an open behavioral stress-test suite for AI agents.
 
 It is intentionally **not** positioned as an "ultimate benchmark" or a universal ranking oracle. Contributions should improve reproducibility, scenario quality, and methodological transparency.
 
+Before contributing, read:
+
+- `docs/WHAT_THIS_TESTS.md`
+- `docs/TESTING.md`
+- `docs/SCREENSHOTS.md` (if UI/docs visuals change)
+- `SECURITY.md` and `CODE_OF_CONDUCT.md`
+
 ## Add a New Simulation (Fast Path)
 
 Use the scaffold script:
@@ -53,9 +60,12 @@ pytest -q tests/test_*_cli.py
 
 If you touched simulation internals, run related unit/integration tests too.
 
+Open PRs should use `.github/PULL_REQUEST_TEMPLATE.md` and include explicit validation output.
+
 ## Design Principles
 
 - Keep scenario behavior deterministic under the same seed.
 - Prefer explicit hidden-metric accounting over implicit side effects.
 - Keep CLI contracts stable (`start`, `status`, `advance`, `full-score` style).
 - Avoid benchmark hype in docs; be clear about limitations and scope.
+- When changing claims or reported findings, update both docs and result artifacts together.

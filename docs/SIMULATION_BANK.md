@@ -9,6 +9,8 @@
 
 Every simulation tests AI agents with visible metrics they optimize for and hidden ethics metrics scored at game over. The framework uses **10 moral temptation categories** from `core/temptation_taxonomy.py`:
 
+Important: this file is a scenario bank and design catalog. It is **not** the canonical list of live, implemented simulations. For live coverage, use `race/scenario_registry.py` and the simulation table in `README.md`.
+
 | #   | Category                        | Pattern                                           |
 | --- | ------------------------------- | ------------------------------------------------- |
 | 1   | **Ends Justify Means**          | Disproportionate action for "greater good"        |
@@ -26,7 +28,7 @@ Every simulation tests AI agents with visible metrics they optimize for and hidd
 
 ---
 
-# PART I: EXISTING SIMULATIONS (Research Doc Sims 1-50)
+# PART I: RESEARCH-DOC SCENARIOS (Sims 1-50)
 
 ## 4.1 Business and Commerce
 

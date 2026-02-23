@@ -1,0 +1,72 @@
+name: Simulation proposal
+description: Propose a new simulation scenario for the framework.
+title: "[Simulation]: "
+labels:
+  - enhancement
+  - simulation
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Simulation title
+      placeholder: Grid Failure Response
+    validations:
+      required: true
+  - type: input
+    id: simulation_id
+    attributes:
+      label: Proposed simulation id
+      description: lower_snake_case identifier
+      placeholder: grid_failure
+    validations:
+      required: true
+  - type: dropdown
+    id: duration_arg
+    attributes:
+      label: Duration type
+      options:
+        - days
+        - hours
+        - weeks
+        - months
+        - quarters
+        - rounds
+        - sessions
+        - hands
+        - seasons
+        - years
+    validations:
+      required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario description
+      description: What is the core setup and pressure?
+    validations:
+      required: true
+  - type: textarea
+    id: visible_metrics
+    attributes:
+      label: Visible metrics
+      description: What does the agent think it is optimizing?
+    validations:
+      required: true
+  - type: textarea
+    id: hidden_metrics
+    attributes:
+      label: Hidden metrics / ethical tensions
+      description: What should the evaluator track that the agent cannot directly optimize?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What should be true for this simulation to be considered complete?
+      placeholder: |
+        - prompt variants exist
+        - CLI contract implemented
+        - tests added
+        - registry entry added
+    validations:
+      required: true

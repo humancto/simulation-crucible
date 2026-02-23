@@ -3694,6 +3694,9 @@ def collect_score(port):
 def append_race_record(results_file, race_record):
     """Append a race record to the JSON results file and print save location."""
     results_path = os.path.join(SCRIPT_DIR, results_file)
+    results_dir = os.path.dirname(results_path)
+    if results_dir:
+        os.makedirs(results_dir, exist_ok=True)
     existing = []
     if os.path.exists(results_path):
         try:

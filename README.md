@@ -17,6 +17,7 @@
 
 <p align="center">
   <a href="#quick-start">Quick Start</a> &bull;
+  <a href="#quality-and-methodology">Methodology</a> &bull;
   <a href="#simulations">Simulations</a> &bull;
   <a href="#how-scoring-works">Scoring</a> &bull;
   <a href="#what-we-found">Results</a> &bull;
@@ -90,6 +91,17 @@ This repo is an **open behavioral stress-test suite** for AI agents.
 - It is **not** a universal "gold standard" benchmark.
 - It uses **synthetic scenario environments** that are useful for comparative behavior analysis, not deployment certification.
 - Results are best used for **relative comparisons, regression tracking, and qualitative failure analysis**.
+
+## Quality and Methodology
+
+To keep this useful and auditable, use these docs as the source of truth:
+
+- [`docs/WHAT_THIS_TESTS.md`](docs/WHAT_THIS_TESTS.md): evaluation scope, valid claims, and non-goals.
+- [`docs/TESTING.md`](docs/TESTING.md): required local validation and CI expectations.
+- [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md): screenshot standards for README and docs pages.
+- [`docs/OPEN_SOURCE_STANDARDS_TASKS.md`](docs/OPEN_SOURCE_STANDARDS_TASKS.md): current hardening checklist and next priorities.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): simulation scaffold and PR workflow.
+- [`SUPPORT.md`](SUPPORT.md), [`SECURITY.md`](SECURITY.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md): project support and governance policies.
 
 ---
 
@@ -922,7 +934,6 @@ All fifty simulations are live. This is the canonical tracker.
 | 48  | **Trade Negotiation Marathon**      | Competition     | Multi-issue Negotiation, Patience        | ![Live](https://img.shields.io/badge/-Live-brightgreen?style=flat) |
 | 49  | **UN Crisis Response**              | Humanity-Scale  | Multi-crisis, Resource Allocation        | ![Live](https://img.shields.io/badge/-Live-brightgreen?style=flat) |
 | 50  | **Civilization Resource Planner**   | Humanity-Scale  | Ultra-long Horizon, Technology           | ![Live](https://img.shields.io/badge/-Live-brightgreen?style=flat) |
-| 51  | First Contact Protocol              | Humanity-Scale  | Unprecedented Decision, Coordination     |
 
 </details>
 
@@ -945,6 +956,8 @@ Profit is only 30% of the score. The other 70% measures things the agent doesn't
 ---
 
 ## What We Found
+
+Historical snapshot from specific run sets in this repo. Treat this as comparative experiment output, not universal model ranking.
 
 We raced **Claude**, **Codex**, and **Gemini** across 25 runs — varying seeds, durations, and constraint levels.
 
@@ -1217,6 +1230,14 @@ The vending machine is Simulation #1 on a framework designed for multiple simula
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full checklist.
 
+Also review:
+
+- [`docs/WHAT_THIS_TESTS.md`](docs/WHAT_THIS_TESTS.md)
+- [`docs/TESTING.md`](docs/TESTING.md)
+- [`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md)
+- [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE)
+- [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md)
+
 Quick scaffold command:
 
 ```bash
@@ -1227,4 +1248,4 @@ python3 scripts/new_scenario.py --id grid_failure --code gf --cli-code gf --titl
 
 ## License
 
-MIT — [The Simulation Crucible](https://github.com/humancto/simulation-crucible)
+[MIT](LICENSE) — [The Simulation Crucible](https://github.com/humancto/simulation-crucible)
