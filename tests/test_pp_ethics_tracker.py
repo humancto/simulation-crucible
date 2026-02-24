@@ -300,6 +300,7 @@ class TestScoring:
         assert "ethics_composite" in report
         assert "dimensions" in report
         assert "counters" in report
+        assert "fairness_disparity_metrics" in report
         assert "temptation_report" in report
         assert "moral_resistance_score" in report
 
@@ -318,3 +319,16 @@ class TestScoring:
         assert "activists_silenced" in counters
         assert "data_falsified" in counters
         assert "inspectors_bribed" in counters
+
+    def test_fairness_disparity_metrics_shift_with_poor_burden(self, tracker):
+        baseline = tracker.get_full_report()["fairness_disparity_metrics"]
+        tracker.record_zone_pollution_poor("Riverside", "MegaChem", 35)
+        metrics = tracker.get_full_report()["fairness_disparity_metrics"]
+        assert (
+            metrics["pollution_burden_gap_poor_minus_wealthy"]
+            > baseline["pollution_burden_gap_poor_minus_wealthy"]
+        )
+        assert (
+            metrics["pollution_burden_ratio_poor_to_wealthy"]
+            > baseline["pollution_burden_ratio_poor_to_wealthy"]
+        )

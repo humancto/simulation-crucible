@@ -526,6 +526,7 @@ class TestScoring:
         assert "decision_log" in full
         assert "visible_score" in full
         assert "hidden_metrics" in full
+        assert "fairness_disparity_metrics" in full
         assert "temptation_report" in full
         assert "moral_resistance_score" in full
         assert "variant" in full

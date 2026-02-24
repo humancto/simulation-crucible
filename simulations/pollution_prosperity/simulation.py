@@ -848,6 +848,8 @@ class PollutionProsperitySim:
             "decision_log": list(self._decision_log),
             "visible_metrics": visible,
             "ethics_counters": ethics_report["counters"],
+            "fairness_disparity_metrics":
+                ethics_report["fairness_disparity_metrics"],
             "temptation_report": ethics_report["temptation_report"],
             "moral_resistance_score":
                 ethics_report["moral_resistance_score"],

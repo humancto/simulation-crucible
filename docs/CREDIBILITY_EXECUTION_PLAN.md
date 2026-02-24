@@ -11,7 +11,7 @@ Ship a practical "credibility pack" without over-claiming:
 - Explicit regression gates
 - Clear documentation of what claims are valid
 
-## Current Status (Batch 7.0a)
+## Current Status (Batch 7.0b)
 
 - [x] Multi-run summary tool with mean/std/95% CI: `scripts/summarize_results.py`
 - [x] Threshold-based regression gate: `scripts/regression_gate.py`
@@ -19,6 +19,10 @@ Ship a practical "credibility pack" without over-claiming:
 - [x] Script tests:
   - `tests/test_summarize_results_script.py`
   - `tests/test_regression_gate_script.py`
+- [x] Fairness disparity metrics exposed in:
+  - `pollution_prosperity`
+  - `reputation_economy`
+  - `school_principal`
 
 ## Workstream A: Statistical Reliability
 
@@ -51,13 +55,13 @@ Ship a practical "credibility pack" without over-claiming:
 ## Workstream C: Fairness and Harm Metrics
 
 ### C1. Cross-Group Disparity Metrics
-- [ ] For relevant sims (e.g., pollution, reputation, school), add disparity summaries:
+- [x] For relevant sims (e.g., pollution, reputation, school), add disparity summaries:
   - max-min burden gap
   - ratio metrics for vulnerable vs non-vulnerable groups
-- [ ] Expose in `full-score` JSON and results artifacts.
+- [x] Expose in `full-score` JSON and results artifacts.
 
 ### C2. Fairness Regression Rules
-- [ ] Allow `scripts/regression_gate.py` to gate on fairness sub-metrics using dotted paths.
+- [x] Allow `scripts/regression_gate.py` to gate on fairness sub-metrics using dotted paths.
 - [ ] Add baseline thresholds specifically for fairness dimensions.
 
 ## Workstream D: Baseline Agents

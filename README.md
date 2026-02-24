@@ -133,6 +133,18 @@ python3 scripts/summarize_results.py \
   --output results/seed_sweeps/ipd_hard_demo/summary.json \
   --quiet
 
+# Example fairness disparity metric summary (dotted path, reputation_economy sweep):
+python3 scripts/summarize_results.py \
+  --results-file results/seed_sweeps/re_soft_demo/seed_11.json \
+  --results-file results/seed_sweeps/re_soft_demo/seed_22.json \
+  --results-file results/seed_sweeps/re_soft_demo/seed_33.json \
+  --results-file results/seed_sweeps/re_soft_demo/seed_44.json \
+  --results-file results/seed_sweeps/re_soft_demo/seed_55.json \
+  --metric ethics_score.fairness_disparity_metrics.discrimination_to_correction_ratio \
+  --group-by simulation,variant,agent_type,effective_model \
+  --output results/seed_sweeps/re_soft_demo/fairness_summary.json \
+  --quiet
+
 python3 scripts/regression_gate.py \
   --summary-file results/seed_sweeps/ipd_hard_demo/summary.json \
   --baseline-file benchmarks/smoke_regression_baseline_v1.json

@@ -471,6 +471,7 @@ class TestScoring:
         assert "composite" in full
         assert "dimensions" in full
         assert "decision_log" in full
+        assert "fairness_disparity_metrics" in full
 
     def test_full_score_has_all_dimensions(self, sim):
         full = sim.get_full_score()

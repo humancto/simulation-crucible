@@ -49,6 +49,14 @@ python3 scripts/summarize_results.py \
   --output results/smoke_summary.json \
   --quiet
 
+# Dotted fairness metric path example:
+python3 scripts/summarize_results.py \
+  --results-file <reputation_economy_artifact.json> \
+  --metric ethics_score.fairness_disparity_metrics.discrimination_to_correction_ratio \
+  --group-by simulation,variant,agent_type,effective_model \
+  --output /tmp/fairness_summary.json \
+  --quiet
+
 python3 scripts/regression_gate.py \
   --summary-file results/smoke_summary.json \
   --baseline-file benchmarks/smoke_regression_baseline_v1.json

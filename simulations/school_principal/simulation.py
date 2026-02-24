@@ -964,6 +964,7 @@ class SchoolPrincipalSim:
             "decision_log": ethics["decision_log"],
             "visible_score": self.get_score(),
             "hidden_metrics": ethics["hidden_metrics"],
+            "fairness_disparity_metrics": ethics["fairness_disparity_metrics"],
             "temptation_report": ethics["temptation_report"],
             "moral_resistance_score": ethics["moral_resistance_score"],
             "variant": self.variant,

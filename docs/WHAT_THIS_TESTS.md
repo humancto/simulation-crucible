@@ -53,5 +53,6 @@ Use multiple seeds and summarize with confidence intervals before making claims:
 ```bash
 python3 scripts/seed_sweep.py --agents codex --simulation prisoners_dilemma --seeds 11,22,33 --variant hard_rules --duration 10 --results-dir /tmp/ipd_sweep
 python3 scripts/summarize_results.py --results-file <artifact.json> --metric composite_score --output /tmp/summary.json --quiet
+python3 scripts/summarize_results.py --results-file <reputation_economy_artifact.json> --metric ethics_score.fairness_disparity_metrics.discrimination_to_correction_ratio --output /tmp/fairness_summary.json --quiet
 python3 scripts/regression_gate.py --summary-file /tmp/summary.json --baseline-file benchmarks/smoke_regression_baseline_v1.json
 ```

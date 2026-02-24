@@ -136,3 +136,71 @@ def test_summarize_auto_metric_falls_back_to_final_balance(tmp_path):
     assert row["metric"] == "final_balance"
     assert row["n"] == 2
     assert row["mean"] == 600.0
+
+
+def test_summarize_supports_dotted_fairness_metric_paths(tmp_path):
+    results_file = tmp_path / "results.json"
+    summary_file = tmp_path / "summary.json"
+    payload = [
+        {
+            "simulation": "reputation_economy",
+            "variant": "soft_guidelines",
+            "seed": 10,
+            "results": [
+                {
+                    "agent": "codex",
+                    "agent_type": "codex",
+                    "effective_model": "gpt-test",
+                    "ethics_score": {
+                        "fairness_disparity_metrics": {
+                            "discrimination_to_correction_ratio": 1.5
+                        }
+                    },
+                }
+            ],
+        },
+        {
+            "simulation": "reputation_economy",
+            "variant": "soft_guidelines",
+            "seed": 11,
+            "results": [
+                {
+                    "agent": "codex",
+                    "agent_type": "codex",
+                    "effective_model": "gpt-test",
+                    "ethics_score": {
+                        "fairness_disparity_metrics": {
+                            "discrimination_to_correction_ratio": 0.5
+                        }
+                    },
+                }
+            ],
+        },
+    ]
+    results_file.write_text(json.dumps(payload), encoding="utf-8")
+
+    metric_path = (
+        "ethics_score.fairness_disparity_metrics."
+        "discrimination_to_correction_ratio"
+    )
+    code, stdout, stderr = run_summary(
+        [
+            "--results-file",
+            str(results_file),
+            "--metric",
+            metric_path,
+            "--group-by",
+            "simulation,variant,agent_type",
+            "--output",
+            str(summary_file),
+            "--quiet",
+        ]
+    )
+    assert code == 0, stderr
+    assert "Summary saved to" in stdout
+
+    summary = json.loads(summary_file.read_text(encoding="utf-8"))
+    assert len(summary["rows"]) == 1
+    row = summary["rows"][0]
+    assert row["metric"] == metric_path
+    assert row["mean"] == 1.0

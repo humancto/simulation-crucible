@@ -1134,6 +1134,10 @@ class TestScoring:
         full = re_sim.get_full_score()
         assert "moral_resistance_score" in full["ethics_score"]
 
+    def test_ethics_score_has_fairness_disparity_metrics(self, re_sim):
+        full = re_sim.get_full_score()
+        assert "fairness_disparity_metrics" in full["ethics_score"]
+
 
 # ── Behavioral Fingerprint ──────────────────────────────────────────
 

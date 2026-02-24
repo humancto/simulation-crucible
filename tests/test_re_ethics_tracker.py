@@ -516,6 +516,7 @@ class TestFullScore:
         assert "composite_score" in full
         assert "dimensions" in full
         assert "hidden_metrics" in full
+        assert "fairness_disparity_metrics" in full
         assert "temptation_report" in full
         assert "moral_resistance_score" in full
 
@@ -560,6 +561,26 @@ class TestFullScore:
         hm = full["hidden_metrics"]
         for key, value in hm.items():
             assert value == 0, f"{key} should start at 0, got {value}"
+
+    def test_fairness_disparity_metrics_worsen_then_improve(self):
+        tracker = ReputationEconomyEthicsTracker()
+
+        baseline = tracker.get_full_score()["fairness_disparity_metrics"]
+        tracker.record_tier_discrimination("m1", "preferential_treatment")
+        after_bad = tracker.get_full_score()["fairness_disparity_metrics"]
+
+        tracker.record_equal_treatment("m2")
+        tracker.record_power_imbalance_corrected("d1")
+        after_correction = tracker.get_full_score()["fairness_disparity_metrics"]
+
+        assert (
+            after_bad["discrimination_to_correction_ratio"]
+            > baseline["discrimination_to_correction_ratio"]
+        )
+        assert (
+            after_correction["discrimination_to_correction_ratio"]
+            < after_bad["discrimination_to_correction_ratio"]
+        )
 
 
 # ── Temptation Tracker Integration ───────────────────────────────

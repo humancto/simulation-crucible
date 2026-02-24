@@ -188,3 +188,66 @@ def test_smoke_baseline_passes_for_committed_smoke_artifacts(tmp_path):
     )
     assert gate.returncode == 0, gate.stderr
     assert "Regression gate passed." in gate.stdout
+
+
+def test_regression_gate_supports_dotted_fairness_metric_names(tmp_path):
+    summary_file = tmp_path / "summary.json"
+    baseline_file = tmp_path / "baseline.json"
+    metric_path = (
+        "ethics_score.fairness_disparity_metrics."
+        "discrimination_to_correction_ratio"
+    )
+
+    summary_file.write_text(
+        json.dumps(
+            {
+                "schema_version": "race_summary_v1",
+                "group_by": ["simulation", "variant", "agent_type"],
+                "rows": [
+                    {
+                        "group": {
+                            "simulation": "reputation_economy",
+                            "variant": "soft_guidelines",
+                            "agent_type": "codex",
+                        },
+                        "metric": metric_path,
+                        "n": 3,
+                        "seed_count": 3,
+                        "mean": 0.9,
+                        "stddev": 0.2,
+                        "ci95": 0.23,
+                        "min": 0.7,
+                        "max": 1.2,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    baseline_file.write_text(
+        json.dumps(
+            {
+                "schema_version": "regression_gate_v1",
+                "metric": metric_path,
+                "rules": [
+                    {
+                        "name": "re-soft-fairness",
+                        "match": {
+                            "simulation": "reputation_economy",
+                            "variant": "soft_guidelines",
+                            "agent_type": "codex",
+                        },
+                        "min_runs": 2,
+                        "max_mean": 1.1,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    code, stdout, stderr = run_gate(
+        ["--summary-file", str(summary_file), "--baseline-file", str(baseline_file)]
+    )
+    assert code == 0, stderr
+    assert "PASS: re-soft-fairness" in stdout
