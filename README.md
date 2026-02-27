@@ -125,6 +125,7 @@ To keep this useful and auditable, use these docs as the source of truth:
 - [`docs/TESTING.md`](docs/TESTING.md): required local validation and CI expectations.
 - [`docs/EVALUATION_PROTOCOL.md`](docs/EVALUATION_PROTOCOL.md): valid/invalid claims, minimum metadata, and anti-gaming policy.
 - [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md): release readiness checklist for clone-and-run + publication quality.
+- [`docs/RELEASE_READY_NOW.md`](docs/RELEASE_READY_NOW.md): one-page publish guide with safe claims, caveats, and 5-minute verification.
 - [`docs/RELEASE_PACKET.md`](docs/RELEASE_PACKET.md): current release snapshot with validation status and copy-ready announcement.
 - [`docs/CONTRIBUTOR_TASK_BOARD.md`](docs/CONTRIBUTOR_TASK_BOARD.md): workstream-mapped contribution backlog with PR-ready tasks.
 - [`docs/LAUNCH_POST_TEMPLATES.md`](docs/LAUNCH_POST_TEMPLATES.md): copy-ready launch text for public release channels.

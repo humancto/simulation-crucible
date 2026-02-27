@@ -10,6 +10,7 @@ Use these as copy-ready starting points. Replace bracketed placeholders.
   - `soft_guidelines` codex batch: `50/50`
   - `hard_rules` codex batch: in progress (TODO)
 - Repro command: `python3 scripts/doctor.py --skip-agents`
+- Fast publish guide: `docs/RELEASE_READY_NOW.md`
 
 ## LinkedIn Template
 

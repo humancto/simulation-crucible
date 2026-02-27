@@ -98,3 +98,9 @@ Repo: https://github.com/humancto/simulation-crucible
 Protocol: docs/EVALUATION_PROTOCOL.md
 Contribute: docs/CONTRIBUTOR_TASK_BOARD.md
 ```
+
+## 7. Fast Publish Guide
+
+If you want the shortest defensible launch path, use:
+
+- `docs/RELEASE_READY_NOW.md`

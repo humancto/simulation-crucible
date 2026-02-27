@@ -19,6 +19,7 @@ REQUIRED_FILES = [
     "docs/TESTING.md",
     "docs/EVALUATION_PROTOCOL.md",
     "docs/RELEASE_CHECKLIST.md",
+    "docs/RELEASE_READY_NOW.md",
     "docs/RELEASE_PACKET.md",
     "docs/CONTRIBUTOR_TASK_BOARD.md",
     "docs/LAUNCH_POST_TEMPLATES.md",
@@ -46,6 +47,7 @@ def test_readme_links_methodology_docs():
     assert "docs/TESTING.md" in readme
     assert "docs/EVALUATION_PROTOCOL.md" in readme
     assert "docs/RELEASE_CHECKLIST.md" in readme
+    assert "docs/RELEASE_READY_NOW.md" in readme
     assert "docs/RELEASE_PACKET.md" in readme
     assert "docs/CONTRIBUTOR_TASK_BOARD.md" in readme
     assert "docs/LAUNCH_POST_TEMPLATES.md" in readme
@@ -67,6 +69,7 @@ def test_index_links_methodology_and_has_current_live_count():
     assert "docs/TESTING.md" in index_html
     assert "docs/EVALUATION_PROTOCOL.md" in index_html
     assert "docs/RELEASE_CHECKLIST.md" in index_html
+    assert "docs/RELEASE_READY_NOW.md" in index_html
     assert "docs/RELEASE_PACKET.md" in index_html
     assert "docs/CONTRIBUTOR_TASK_BOARD.md" in index_html
 
