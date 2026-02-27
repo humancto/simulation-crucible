@@ -32,6 +32,7 @@ pytest -q tests/test_run_race_results.py tests/test_run_race_schema.py
 - [ ] Run regression checks with `scripts/regression_gate.py`.
 - [ ] Generate coverage report with `scripts/results_coverage.py`.
 - [ ] Record missing simulations if coverage is partial.
+- [ ] If a variant batch is incomplete (e.g., `hard_rules`), label it explicitly as TODO in release notes.
 
 ## 5. Documentation
 

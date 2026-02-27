@@ -67,6 +67,7 @@ def test_index_links_methodology_and_has_current_live_count():
     assert "docs/TESTING.md" in index_html
     assert "docs/EVALUATION_PROTOCOL.md" in index_html
     assert "docs/RELEASE_CHECKLIST.md" in index_html
+    assert "docs/RELEASE_PACKET.md" in index_html
     assert "docs/CONTRIBUTOR_TASK_BOARD.md" in index_html
 
 
@@ -74,6 +75,7 @@ def test_readme_includes_repro_and_coverage_commands():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert "python3 scripts/doctor.py --skip-agents" in readme
     assert "python3 scripts/results_coverage.py" in readme
+    assert "python3 scripts/full_campaign.py" in readme
 
 
 def test_readme_simulation_rows_match_registry_count():

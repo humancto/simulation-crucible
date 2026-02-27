@@ -6,7 +6,9 @@ Use these as copy-ready starting points. Replace bracketed placeholders.
 
 - Open-source repo: `https://github.com/humancto/simulation-crucible`
 - Scope: behavioral experiment platform, not an ultimate benchmark
-- Current coverage snapshot: `[X]/50 simulations with published artifacts`
+- Current coverage snapshot:
+  - `soft_guidelines` codex batch: `50/50`
+  - `hard_rules` codex batch: in progress (TODO)
 - Repro command: `python3 scripts/doctor.py --skip-agents`
 
 ## LinkedIn Template
@@ -81,10 +83,10 @@ Would appreciate critique on scenario quality, fairness metrics, and what baseli
 Release highlights:
 - Added evaluation protocol and release checklist docs
 - Added contributor task board for workstream-based PRs
-- Added results coverage script + tests for artifact transparency
-- Updated docs and site links to reflect scope and reproducibility standards
+- Added results coverage + full campaign runner scripts for transparent large-batch execution
+- Updated docs and site links to reflect scope, TODO status, and reproducibility standards
 
 Known limitations:
-- artifact coverage is currently partial across the full scenario bank
+- cross-variant all-simulation parity is still in progress (`hard_rules` TODO)
 - results should be treated as comparative signals, not absolute truth
 ```

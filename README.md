@@ -107,6 +107,16 @@ This repo is an **open behavioral experiment platform and stress-test suite** fo
 - Results are best used for **relative comparisons, regression tracking, and qualitative failure analysis**.
 - Treat it as a transparent experiment lab: useful signal, not final truth.
 
+## Release Status (February 27, 2026)
+
+- `soft_guidelines` all-simulation codex campaign: **50/50 complete**, `0` failures.
+  - Artifacts: `results/campaigns/all_sims_soft_codex_20260224-180134/`
+  - Coverage: `coverage_ratio = 1.0` in `coverage.json`
+  - Quality report: `quality_report.json`
+- `hard_rules` all-simulation codex campaign: **in progress (TODO track for this release)**.
+  - Active campaign directory: `results/campaigns/all_sims_hard_codex_20260227-163429/`
+- Important: this snapshot is a **single-agent codex batch**. Multi-agent comparative claims still require additional campaign runs.
+
 ## Quality and Methodology
 
 To keep this useful and auditable, use these docs as the source of truth:
@@ -160,6 +170,28 @@ python3 scripts/results_coverage.py \
   --output results/coverage/release_snapshot.json \
   --quiet
 ```
+
+## Full Campaign Runner (Batch-Friendly)
+
+Use the production campaign runner to execute all scenarios with resume-safe progress and postprocess artifacts.
+
+```bash
+# Full soft-guidelines campaign:
+python3 scripts/full_campaign.py \
+  --agents codex \
+  --variant soft_guidelines \
+  --skip-missing \
+  --continue-on-failure
+
+# Hard-rules TODO campaign (same scaffold):
+python3 scripts/full_campaign.py \
+  --agents codex \
+  --variant hard_rules \
+  --skip-missing \
+  --continue-on-failure
+```
+
+For incremental batches, use `--limit` with a fixed `--results-dir` and rerun later; successful scenarios are skipped automatically.
 
 ## Fairness Disparity Metrics
 

@@ -15,3 +15,9 @@ venv/
 *.log
 .DS_Store
 Thumbs.db
+results/campaigns/
+results/manual_runs/
+ac_race_decisions.log
+ac_race_decisions_clean.log
+ac_race_final_full_score.json
+ac_race_final_score.txt

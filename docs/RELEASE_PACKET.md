@@ -1,75 +1,100 @@
-# Release Packet (2026-02-24)
+# Release Packet (2026-02-27)
 
-This file captures the current public-release state of the repository.
+This file captures current release readiness and benchmark artifact status.
 
-## 1. What Is Ready
+## 1. Release Position
 
-- Clone-and-run core flow documented and validated (`scripts/doctor.py`).
-- Evaluation claim boundaries published (`docs/EVALUATION_PROTOCOL.md`).
-- Release and OSS checklist published (`docs/RELEASE_CHECKLIST.md`).
-- Contributor entry path published (`docs/CONTRIBUTOR_TASK_BOARD.md`).
-- Copy-ready launch posts published (`docs/LAUNCH_POST_TEMPLATES.md`).
+Current recommendation:
 
-## 2. Validation Snapshot
+- **Framework/OSS release**: ready now
+- **Benchmark-results release**: ready for `soft_guidelines` codex all-simulation batch
+- **`hard_rules` codex all-simulation batch**: in progress (explicit TODO track)
 
-Executed and passed in this release pass:
+## 2. Completed This Cycle
 
-- `python3 -m py_compile $(rg --files -g '*.py')`
-- `pytest -q tests/test_oss_docs.py tests/test_doctor_script.py tests/test_results_coverage_script.py tests/test_summarize_results_script.py tests/test_regression_gate_script.py tests/test_seed_sweep_script.py tests/test_run_race_results.py tests/test_run_race_schema.py`
-- Race smoke run:
-  - `python3 run_race.py --simulation prisoners_dilemma --agents claude,codex --seed 42 --rounds 1 --variant soft_guidelines --max-turns 30 --skip-missing --results-file /tmp/release_smoke_results.json`
+- Production clone-and-run readiness (`scripts/doctor.py`).
+- Evaluation governance docs:
+  - `docs/EVALUATION_PROTOCOL.md`
+  - `docs/RELEASE_CHECKLIST.md`
+  - `docs/CONTRIBUTOR_TASK_BOARD.md`
+  - `docs/LAUNCH_POST_TEMPLATES.md`
+- Results coverage tooling (`scripts/results_coverage.py`).
+- Full campaign runner (`scripts/full_campaign.py`) with resumable progress + postprocess.
 
-## 3. Artifact Coverage Snapshot
+## 3. Campaign Status Snapshot
 
-Generated with:
+### Soft Guidelines (Codex, seed 42)
+
+Directory:
+
+- `results/campaigns/all_sims_soft_codex_20260224-180134/`
+
+Status:
+
+- runs total: `50`
+- runs ok: `50`
+- runs failed: `0`
+- coverage: `50/50` (`coverage_ratio = 1.0`)
+
+Key artifacts:
+
+- `progress.json`
+- `summary.json`
+- `coverage.json`
+- `summary_auto.json` (covers all 50 scenarios)
+- `summary_composite.json` (49 scenarios; `vending_machine` has no `composite_score` metric)
+- `quality_report.json`
+- `warning_scan.txt`
+
+### Hard Rules (Codex, seed 42)
+
+Directory:
+
+- `results/campaigns/all_sims_hard_codex_20260227-163429/`
+
+Status:
+
+- in progress
+- tracked as TODO for complete variant parity before stronger comparative claims
+
+## 4. Minimum Public Claim Boundary
+
+Safe claims now:
+
+- The project is an open behavioral experiment framework with reproducible artifacts.
+- A complete `soft_guidelines` codex all-simulation batch exists with published artifacts.
+- This is useful for comparative behavior analysis and due diligence, not certification.
+
+Avoid claiming now:
+
+- universal benchmark authority
+- deployment safety certification
+- final cross-variant conclusions before `hard_rules` batch completion
+
+## 5. Repro Commands
 
 ```bash
-python3 scripts/results_coverage.py --output /tmp/release_results_coverage.json --quiet
+python3 scripts/doctor.py --skip-agents
+python3 scripts/full_campaign.py --agents codex --variant soft_guidelines --skip-missing --continue-on-failure
+python3 scripts/results_coverage.py --results-glob "results/campaigns/all_sims_soft_codex_20260224-180134/*.json" --output results/campaigns/all_sims_soft_codex_20260224-180134/coverage.json --quiet
 ```
 
-Current snapshot:
-
-- simulations with published artifacts: `4/50`
-- coverage ratio: `0.08`
-
-Interpretation:
-
-- Framework release quality: ready.
-- Benchmark-completeness quality: partial, still in-progress.
-
-## 4. Public Claim Boundary
-
-Safe public claim:
-
-- "Simulation Crucible is an open behavioral experiment platform for comparative AI behavior analysis with reproducible artifacts and explicit limitations."
-
-Avoid claiming:
-
-- universal benchmark status
-- deployment-safety certification
-- complete scenario-bank benchmark coverage
-
-## 5. Copy-Ready Announcement
+## 6. Copy-Ready Short Announcement
 
 ```text
 Open-sourcing: The Simulation Crucible
 
 Simulation Crucible is an open behavioral experiment platform for AI agents.
-It tests model behavior under synthetic scenarios with hidden metrics, ethical pressure, and constraint variants.
+It stress-tests model behavior in synthetic scenarios with hidden metrics, ethical pressure, and constraint variants.
 
-What is live now:
-- 50-scenario framework architecture
-- reproducible race runner and artifact manifests
-- explicit evaluation protocol + release checklist
-- contributor task board for scoped PRs
+Release snapshot:
+- 50-scenario framework with reproducible runner flow
+- complete codex soft_guidelines batch across all 50 scenarios (artifacts published)
+- hard_rules full batch is in progress and tracked as TODO
 
-What this is not:
-- not a universal benchmark
-- not deployment safety certification
+Not an ultimate benchmark. Not deployment safety certification.
 
 Repo: https://github.com/humancto/simulation-crucible
 Protocol: docs/EVALUATION_PROTOCOL.md
 Contribute: docs/CONTRIBUTOR_TASK_BOARD.md
-
-If you run model evals and want to pressure-test behavior tradeoffs, feedback and PRs are welcome.
 ```
